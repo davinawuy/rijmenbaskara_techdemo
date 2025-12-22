@@ -44,3 +44,32 @@ def articles(request):
 
 def about(request):
     return render(request, 'about.html')
+
+def add_article(request):
+    """
+    Lightweight article composer (front-end only).
+    Captures a cover image + body HTML and surfaces a success message.
+    Hook this up to persistence later.
+    """
+    context = {}
+
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        subtitle = request.POST.get('subtitle', '').strip()
+        body_html = request.POST.get('body_html', '').strip()
+
+        context.update({
+            'draft_title': title,
+            'draft_subtitle': subtitle,
+            'draft_body': body_html,
+        })
+
+        if title and body_html:
+            messages.success(
+                request,
+                'Draft captured. Wire this form to your storage layer to publish.'
+            )
+        else:
+            messages.error(request, 'Please add a title and some body text.')
+
+    return render(request, 'add_article.html', context)

@@ -12,6 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/articles.css' %}">
 </head>
 
 <body>
@@ -29,6 +30,7 @@
             <nav class="nav" aria-label="Primary">
               <a class="nav__link" href="{% url 'works' %}">Works</a>
               <a class="nav__link is-active" href="{% url 'articles' %}">Article</a>
+              <a class="nav__link" href="{% url 'add_article' %}">Add</a>
               <a class="nav__link" href="{% url 'about' %}">About</a>
               <a class="nav__link" href="{% url 'contact' %}">Contact</a>
               <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
@@ -44,8 +46,17 @@
             <section class="articles-hero">
               <h1 class="articles-title">ARTICLES</h1>
               <p class="articles-subtitle">Featured Articles & Reviews</p>
-              
-              <p style="margin-top: 40px; font-size: 1.2rem;">Coming Soon...</p>
+
+              <div class="articles-cta">
+                <div>
+                  <p class="eyebrow">NEW</p>
+                  <h2>Publish-ready drafting</h2>
+                  <p>Start a new story with a Medium-inspired editor, cover dropzone, and rich text controls.</p>
+                </div>
+                <a class="cta-btn" href="{% url 'add_article' %}">Write article</a>
+              </div>
+
+              <p class="coming-soon">More curated reads coming soon.</p>
             </section>
 
             <!-- Footer -->
