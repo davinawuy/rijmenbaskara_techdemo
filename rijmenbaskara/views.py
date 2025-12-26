@@ -90,7 +90,50 @@ def home(request):
     return render(request, 'home.html')
 
 def works(request):
-    return render(request, 'works.html')
+    # seed works (static)
+    base_items = [
+        {"src": "images/Orange-colored-cat-yawns-displaying-teeth.webp", "title": "Benetton B186"},
+        {"src": "images/images.jpg", "title": "Ferrari SF-23"},
+        {"src": "images/Earhart-3-scaled.jpg", "title": "Porsche 962C"},
+        {"src": "images/images (1).jpg", "title": "McLaren M23"},
+        {"src": "images/images.jpg", "title": "F-16 Fighting Falcon"},
+        {"src": "images/Orange-colored-cat-yawns-displaying-teeth.webp", "title": "USS Nimitz"},
+        {"src": "images/Earhart-3-scaled.jpg", "title": "British Spitfire Mk XIV"},
+        {"src": "images/images (1).jpg", "title": "Tiger I"},
+    ]
+
+    uploads_dir = Path(settings.BASE_DIR) / "static" / "images" / "works_uploads"
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+    # Handle admin upload
+    if request.method == 'POST':
+        if not request.user.is_authenticated or not request.user.is_staff:
+            messages.error(request, "Admins only can add pictures.")
+            return redirect('works')
+        # Upload flow
+        upload = request.FILES.get('work_image')
+        title = request.POST.get('title', '') or (upload.name if upload else None)
+        if upload:
+            safe_name = f"{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{Path(upload.name).name}"
+            target = uploads_dir / safe_name
+            with target.open('wb') as fh:
+                for chunk in upload.chunks():
+                    fh.write(chunk)
+            messages.success(request, "Image saved to static/ images/works_uploads.")
+        else:
+            messages.error(request, "Please choose an image.")
+        return redirect('works')
+
+    # Collected uploads
+    upload_items = []
+    for path in uploads_dir.glob("*"):
+        if path.is_file():
+            upload_items.append({
+                "src": f"images/works_uploads/{path.name}",
+                "title": path.stem,
+            })
+
+    works_items = base_items + upload_items
+    return render(request, 'works.html', {"works_items": works_items})
 
 def articles(request):
     items = _load_articles()

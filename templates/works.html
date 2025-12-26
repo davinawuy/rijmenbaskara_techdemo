@@ -12,6 +12,8 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/works.css' %}">
+  <script defer src="{% static 'js/works.js' %}"></script>
 </head>
 
 <body>
@@ -46,10 +48,40 @@
           <div class="container works">
 
             <section class="works-hero">
-              <h1 class="works-title">WORKS</h1>
-              <p class="works-subtitle">Our Portfolio of Scale Models</p>
-              
-              <p style="margin-top: 40px; font-size: 1.2rem;">Coming Soon...</p>
+              <h1 class="works-title">Gallery</h1>
+            </section>
+
+            <section class="works-gallery">
+              <div class="works-controls">
+                <div class="controls-left">
+                  <button type="button" class="slider-btn" data-dir="prev" aria-label="Previous">‹</button>
+                  <button type="button" class="slider-btn" data-dir="next" aria-label="Next">›</button>
+                </div>
+                {% if request.user.is_staff %}
+                  <div class="controls-right">
+                    <form method="post" enctype="multipart/form-data" id="workUploadForm">
+                      {% csrf_token %}
+                      <label class="upload-label">
+                        <input type="file" id="workUpload" name="work_image" accept="image/*" hidden>
+                        <span>Add picture</span>
+                      </label>
+                    </form>
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="works-grid" id="worksGrid">
+                {% for item in works_items %}
+                  <figure class="work-item">
+                    <div class="work-img">
+                      <img src="{% static item.src %}" alt="{{ item.title }}">
+                    </div>
+                    <figcaption>{{ item.title }}</figcaption>
+                  </figure>
+                {% empty %}
+                  <p class="coming-soon">No items yet.</p>
+                {% endfor %}
+              </div>
             </section>
 
             <!-- Footer -->
