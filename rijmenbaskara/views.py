@@ -133,13 +133,30 @@ def works(request):
             })
 
     works_items = base_items + upload_items
-    return render(request, 'works.html', {"works_items": works_items})
+
+    # Search filter
+    query = request.GET.get('q', '').strip().lower()
+    if query:
+        works_items = [
+            item for item in works_items
+            if query in (item.get("title") or "").lower()
+        ]
+
+    return render(request, 'works.html', {"works_items": works_items, "works_query": request.GET.get('q', '')})
 
 def articles(request):
     items = _load_articles()
     active_tag = request.GET.get('tag', '').strip()
+    query = request.GET.get('q', '').strip().lower()
     if active_tag:
         items = [a for a in items if active_tag in (a.get("tags") or [])]
+    if query:
+        items = [
+            a for a in items
+            if query in (a.get("title") or "").lower()
+            or query in (a.get("subtitle") or "").lower()
+            or query in " ".join(a.get("tags") or []).lower()
+        ]
 
     year_groups = {}
     for art in items:
@@ -153,6 +170,7 @@ def articles(request):
         "year_list": year_list,
         "active_tag": active_tag,
         "tag_choices": TAG_CHOICES,
+        "articles_query": request.GET.get('q', ''),
     })
 
 def about(request):

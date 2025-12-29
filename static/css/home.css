@@ -104,23 +104,7 @@
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   width: 100%;
-}
-
-.works-grid::-webkit-scrollbar {
-  height: 8px;
-}
-
-.works-grid::-webkit-scrollbar-track {
   background: var(--bg);
-}
-
-.works-grid::-webkit-scrollbar-thumb {
-  background: var(--muted);
-  border-radius: 4px;
-}
-
-.works-grid::-webkit-scrollbar-thumb:hover {
-  background: var(--ink);
 }
 
 .work-card{
@@ -128,8 +112,8 @@
   flex-direction: column;
   min-width: 200px;
   max-width: 200px;
-  min-height: 180px;
-  background: #e9e9e9;
+  min-height: 200px;
+  background: var(--bg);
   border-right: 1px solid var(--rule);
   flex-shrink: 0;
 }
@@ -141,16 +125,35 @@
 .work-image{
   flex: 1;
   background: transparent; /* grey fill is on card */
+  overflow: hidden;
+}
+
+.work-image img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .work-title{
   margin: 0;
   padding: 10px 10px 12px;
   font-family: var(--sans);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 11px;
   line-height: 1.2;
   color: var(--ink);
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: blur(3px);
+}
+
+[data-theme="dark"] .work-card{
+  background: var(--bg);
+}
+
+[data-theme="dark"] .work-title{
+  color: var(--ink);
+  background: rgba(0,0,0,0.55);
 }
 
 /* FEATURED ARTICLES (vertical list, like screenshot) */
@@ -259,14 +262,11 @@
 /* Responsive */
 @media (max-width: 980px){
   .works-grid{
-    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
   }
   .work-card{
-    border-right: 0;
-    border-bottom: 1px solid var(--rule);
-  }
-  .works-grid .work-card:nth-child(odd){
-    border-right: 1px solid var(--rule);
+    min-width: 180px;
+    max-width: 180px;
   }
 
   .article-row{

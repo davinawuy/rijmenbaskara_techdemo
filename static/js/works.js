@@ -18,6 +18,7 @@
   const modalCaption = modal.querySelector('.work-modal__caption');
   const closeBtn = modal.querySelector('.work-modal__close');
   const backdrop = modal.querySelector('.work-modal__backdrop');
+  const workItems = document.querySelectorAll('.work-item');
 
   // Slider controls
   document.querySelectorAll('.slider-btn').forEach(btn => {
@@ -85,6 +86,26 @@
     upload.addEventListener('change', () => {
       const form = document.getElementById('workUploadForm');
       if (form && upload.files.length) form.submit();
+    });
+  }
+
+  // Cascade-in reveal (bottom-to-top feel via translateY)
+  if (workItems.length) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const idx = Number(el.dataset.index || 0);
+          el.style.setProperty('--cascade-delay', `${idx * 80}ms`);
+          el.classList.add('is-visible');
+          observer.unobserve(el);
+        }
+      });
+    }, { threshold: 0.2 });
+
+    workItems.forEach((el, idx) => {
+      el.dataset.index = idx;
+      observer.observe(el);
     });
   }
 

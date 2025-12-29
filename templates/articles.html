@@ -46,25 +46,36 @@
         <main class="content">
           <div class="container articles">
 
-            <section class="articles-hero">
+            <section class="articles-hero anim-fade">
               <h1 class="articles-title">ARTICLES</h1>
               <p class="articles-subtitle">Featured Articles & Reviews</p>
             </section>
 
-            <section class="filter-bar">
-              <div class="filter-bar__label">Filter by tag</div>
-              <div class="filter-bar__chips">
-                <a class="filter-chip {% if not active_tag %}is-active{% endif %}" href="{% url 'articles' %}">All</a>
-                {% for tag in tag_choices %}
-                  <a class="filter-chip {% if active_tag == tag %}is-active{% endif %}" href="{% url 'articles' %}?tag={{ tag }}">{{ tag }}</a>
-                {% endfor %}
+            <section class="filter-bar anim-up">
+              <div class="filter-bar__top">
+                <div>
+                  <div class="filter-bar__label">Filter by tag</div>
+                  <div class="filter-bar__chips">
+                    <a class="filter-chip {% if not active_tag %}is-active{% endif %}" href="{% url 'articles' %}">All</a>
+                    {% for tag in tag_choices %}
+                      <a class="filter-chip {% if active_tag == tag %}is-active{% endif %}" href="{% url 'articles' %}?tag={{ tag }}{% if articles_query %}&q={{ articles_query }}{% endif %}">{{ tag }}</a>
+                    {% endfor %}
+                  </div>
+                  {% if active_tag %}
+                    <div class="filter-bar__note">Showing articles tagged "{{ active_tag }}".</div>
+                  {% endif %}
+                </div>
+                <form method="get" class="filter-search">
+                  {% if active_tag %}
+                    <input type="hidden" name="tag" value="{{ active_tag }}">
+                  {% endif %}
+                  <input type="text" name="q" value="{{ articles_query }}" placeholder="Search title or tags" aria-label="Search articles">
+                  <button type="submit">Search</button>
+                </form>
               </div>
-              {% if active_tag %}
-                <div class="filter-bar__note">Showing articles tagged "{{ active_tag }}".</div>
-              {% endif %}
             </section>
 
-            <section class="timeline">
+            <section class="timeline anim-up">
               <div class="timeline__years">
                 {% if year_list %}
                   {% for year, _ in year_list %}

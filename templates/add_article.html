@@ -46,7 +46,7 @@
         <main class="content">
           <div class="container add-article">
 
-            <section class="add-article__hero">
+            <section class="add-article__hero anim-fade">
               <p class="eyebrow">EDITOR</p>
               <h1 class="add-article__title">
                 {% if is_edit %}Edit article{% else %}Write a new article{% endif %}
@@ -68,7 +68,7 @@
               </div>
             {% endif %}
 
-            <form method="post" enctype="multipart/form-data" class="editor-shell" id="articleForm">
+            <form method="post" enctype="multipart/form-data" class="editor-shell anim-up" id="articleForm">
               {% csrf_token %}
               {% if article_id %}
                 <input type="hidden" name="article_id" value="{{ article_id }}">

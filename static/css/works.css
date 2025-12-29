@@ -10,6 +10,7 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 22px;
+  animation: fadeIn 0.7s ease both;
 }
 
 .works-title{
@@ -52,6 +53,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
+  gap: 10px;
+  animation: fadeIn 0.7s ease both;
 }
 
 .controls-left{
@@ -61,7 +64,8 @@
 
 .controls-right{
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  align-items: center;
 }
 
 .slider-btn{
@@ -75,7 +79,8 @@
   height: 38px;
   border-radius: 50%;
   cursor: pointer;
-  transition: transform 0.2s ease, background-color 0.2s ease;
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
 }
 
 .slider-btn:hover{
@@ -96,6 +101,35 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.upload-label:hover{
+  transform: translateY(-1px);
+  background: rgba(11,11,11,.04);
+  border-color: var(--ink);
+}
+
+.works-search{
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.works-search input{
+  border: 1px solid var(--rule);
+  padding: 8px 10px;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 13px;
+}
+.works-search button{
+  border: 1px solid var(--rule);
+  background: var(--bg);
+  padding: 8px 12px;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
 }
 
 .works-grid{
@@ -105,6 +139,11 @@
   overflow-x: auto;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.works-grid::-webkit-scrollbar{
+  display: none;
 }
 
 .work-item{
@@ -113,6 +152,13 @@
   flex-direction: column;
   gap: 8px;
   cursor: pointer;
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.work-item.is-visible{
+  animation: cascadeUp 0.65s ease forwards;
+  animation-delay: var(--cascade-delay, 0s);
 }
 
 .work-img{
@@ -156,6 +202,12 @@
   font-size: 14px;
   color: var(--muted);
   text-align: left;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.work-item:hover figcaption{
+  color: var(--ink);
+  transform: translateX(3px);
 }
 
 .is-grabbing{
@@ -193,6 +245,7 @@
   gap: 10px;
   z-index: 1;
   box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  animation: popIn 0.28s ease;
 }
 
 .work-modal__content img{
@@ -222,6 +275,12 @@
   cursor: pointer;
   font-size: 18px;
   line-height: 1;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.work-modal__close:hover{
+  transform: scale(1.05);
+  background: rgba(11,11,11,.05);
 }
 
 @media (min-width: 1100px){
@@ -229,3 +288,29 @@
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* Animations */
+@keyframes fadeIn{
+  from{ opacity:0; transform: translateY(6px); }
+  to{ opacity:1; transform: translateY(0); }
+}
+
+@keyframes popIn{
+  from{ opacity:0; transform: scale(0.96); }
+  to{ opacity:1; transform: scale(1); }
+}
+
+@keyframes cascadeUp{
+  from{ opacity:0; transform: translateY(28px); }
+  to{ opacity:1; transform: translateY(0); }
+}
+
+/* Stagger work items */
+.work-item:nth-child(1){ --cascade-delay: 0.05s; }
+.work-item:nth-child(2){ --cascade-delay: 0.1s; }
+.work-item:nth-child(3){ --cascade-delay: 0.15s; }
+.work-item:nth-child(4){ --cascade-delay: 0.2s; }
+.work-item:nth-child(5){ --cascade-delay: 0.25s; }
+.work-item:nth-child(6){ --cascade-delay: 0.3s; }
+.work-item:nth-child(7){ --cascade-delay: 0.35s; }
+.work-item:nth-child(8){ --cascade-delay: 0.4s; }

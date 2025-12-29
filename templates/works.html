@@ -13,6 +13,8 @@
 
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="{% static 'css/works.css' %}">
+  <link rel="stylesheet" href="{% static 'css/gallery-viewer.css' %}">
+  <script defer src="{% static 'js/gallery-viewer.js' %}"></script>
   <script defer src="{% static 'js/works.js' %}"></script>
 </head>
 
@@ -47,18 +49,25 @@
         <main class="content">
           <div class="container works">
 
-            <section class="works-hero">
+                        <section class="works-hero">
               <h1 class="works-title">Gallery</h1>
+              <p class="works-subtitle">SenseiWagnibiart gallery — filter by genre or quality.</p>
             </section>
 
             <section class="works-gallery">
               <div class="works-controls">
-                <div class="controls-left">
-                  <button type="button" class="slider-btn" data-dir="prev" aria-label="Previous">‹</button>
-                  <button type="button" class="slider-btn" data-dir="next" aria-label="Next">›</button>
-                </div>
-                {% if request.user.is_staff %}
-                  <div class="controls-right">
+                <div class="controls-right">
+                  <form method="get" class="works-search">
+                    <input type="text" name="q" value="{{ works_query }}" placeholder="Search works..." aria-label="Search works">
+                    <button type="submit">Search</button>
+                  </form>
+                  <div class="works-tags" id="worksTags">
+                    <button type="button" class="tag-chip is-active" data-filter="all">All</button>
+                    {% for tag in works_tags %}
+                      <button type="button" class="tag-chip" data-filter="{{ tag }}">{{ tag }}</button>
+                    {% endfor %}
+                  </div>
+                  {% if request.user.is_staff %}
                     <form method="post" enctype="multipart/form-data" id="workUploadForm">
                       {% csrf_token %}
                       <label class="upload-label">
@@ -66,15 +75,21 @@
                         <span>Add picture</span>
                       </label>
                     </form>
-                  </div>
-                {% endif %}
+                  {% endif %}
+                </div>
               </div>
 
-              <div class="works-grid" id="worksGrid">
+              {% get_static_prefix as static_root %}
+              <div class="works-masonry" id="worksGrid">
                 {% for item in works_items %}
-                  <figure class="work-item">
+                  <figure
+                    class="work-item"
+                    id="{{ item.slug }}"
+                    data-tags="{{ item.tags|join:',' }}"
+                    data-images="{% for img in item.images %}{{ static_root }}{{ img }}{% if not forloop.last %}|{% endif %}{% endfor %}"
+                    data-title="{{ item.title }}">
                     <div class="work-img">
-                      <img src="{% static item.src %}" alt="{{ item.title }}">
+                      <img src="{{ static_root }}{{ item.thumb }}" alt="{{ item.title }}">
                     </div>
                     <figcaption>{{ item.title }}</figcaption>
                   </figure>

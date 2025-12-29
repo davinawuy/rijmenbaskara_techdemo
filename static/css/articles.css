@@ -91,6 +91,13 @@
 .filter-bar{
   margin: 10px 0 18px;
 }
+.filter-bar__top{
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
 .filter-bar__label{
   font-family: var(--sans);
   font-weight: 600;
@@ -127,6 +134,28 @@
   font-weight: 500;
   font-size: 12px;
   color: var(--muted);
+}
+
+.filter-search{
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.filter-search input{
+  border: 1px solid var(--rule);
+  padding: 8px 10px;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 13px;
+}
+.filter-search button{
+  border: 1px solid var(--rule);
+  background: var(--bg);
+  padding: 8px 12px;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
 }
 
 .timeline__years{
