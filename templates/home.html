@@ -48,31 +48,54 @@
         <main class="content home-content">
           <div class="container">
 
-            <!-- Hero Section -->
+            <!-- Hero Section replaced with marquee banner -->
             <section class="hero-section anim-fade">
-              <h1 class="hero-title">
-                RIJMEN &amp;<br />
-                BASKARA
-              </h1>
+              <div class="hero-slogan">
+                RIJMEN &amp; BASKARA creates Bespoke Miniatures for artistic, interactive, and historical display
+              </div>
+              <div class="marquee-frame">
+                <div class="marquee-banner">
+                  <div class="marquee-row marquee-row--top">
+                    <div class="marquee-group">
+                      {% for item in hero_images %}
+                        <div class="marquee-card">
+                          <img src="{% static item.src %}" alt="Gallery image">
+                        </div>
+                      {% endfor %}
+                    </div>
+                    <div class="marquee-group" aria-hidden="true">
+                      {% for item in hero_images %}
+                        <div class="marquee-card">
+                          <img src="{% static item.src %}" alt="Gallery image">
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                  <div class="marquee-row marquee-row--bottom">
+                    <div class="marquee-group">
+                      {% for item in hero_images %}
+                        <div class="marquee-card">
+                          <img src="{% static item.src %}" alt="Gallery image">
+                        </div>
+                      {% endfor %}
+                    </div>
+                    <div class="marquee-group" aria-hidden="true">
+                      {% for item in hero_images %}
+                        <div class="marquee-card">
+                          <img src="{% static item.src %}" alt="Gallery image">
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
 
-              <p class="hero-subtitle">
-                Creates bespoke scale models<br />
-                from Jakarta, Indonesia.
+            <section class="about-works anim-fade">
+              <p class="about-works__body">
+                Warhammer is a hobby of building, painting, and gaming with miniature armies. It blends careful model-making with rich lore and narrative campaigns. Every project moves from assembly to paint to weathering so armies look lived-in. Games play out on tabletops as strategy, dice, and tactics meet visual storytelling. It’s creative craft, competitive play, and shared fiction all at once.
               </p>
-
-              <div class="hero-description">
-                <p><strong>RIJMEN &amp; BASKARA</strong> creates <em>Bespoke Models</em> for <em>Historical Preservation</em> and <em>Visual Display</em></p>
-              </div>
-
-              <div class="video-container" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; margin: 2rem 0; border: 2px solid var(--rule);">
-                <video 
-                  style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;"
-                  controls
-                  preload="metadata">
-                  <source src="{% static 'images/YTDown.com_YouTube_Laufey-Promise-Official-Audio_Media_Yq6qkq_TWAM_001_1080p.mp4' %}" type="video/mp4">
-                  Your browser does not support the video tag.
-                </video>
-              </div>
+              <div class="about-works__line"></div>
             </section>
 
             <!-- Works Section -->
@@ -80,94 +103,26 @@
               <h2 class="section-title">Works</h2>
 
               <div class="works-grid">
-                <div class="work-card">
-                  <div class="work-image">
-                    <img src="{% static 'images/Orange-colored-cat-yawns-displaying-teeth.webp' %}" alt="British Spitfire" style="width: 100%; height: 100%; object-fit: cover;">
-                  </div>
-                  <h3 class="work-title">1/48 British<br />Spitfire Mk XIV</h3>
-                </div>
-
-                <div class="work-card">
-                  <div class="work-image">
-                    <img src="{% static 'images/images.jpg' %}" alt="Tamiya M48A3 Patton" style="width: 100%; height: 100%; object-fit: cover;">
-                  </div>
-                  <h3 class="work-title">1/48 Tamiya<br />M48A3 Patton</h3>
-                </div>
-
-                <div class="work-card">
-                  <div class="work-image">
-                    <img src="{% static 'images/images (1).jpg' %}" alt="McLaren M23" style="width: 100%; height: 100%; object-fit: cover;">
-                  </div>
-                  <h3 class="work-title">1/12 McLaren<br />M23</h3>
-                </div>
-
-                <div class="work-card">
-                  <div class="work-image">
-                    <img src="{% static 'images/Earhart-3-scaled.jpg' %}" alt="Russian KV-2" style="width: 100%; height: 100%; object-fit: cover;">
-                  </div>
-                  <h3 class="work-title">1/35 Russian<br />KV-2</h3>
-                </div>
-
-                <div class="work-card">
-                  <div class="work-image">
-                    <img src="{% static 'images/Orange-colored-cat-yawns-displaying-teeth.webp' %}" alt="USS NIMITZ" style="width: 100%; height: 100%; object-fit: cover;">
-                  </div>
-                  <h3 class="work-title">1/800 USS<br />NIMITZ</h3>
-                </div>
-
-                <div class="work-card">
-                  <div class="work-image">
-                    <img src="{% static 'images/images.jpg' %}" alt="F-16 Fighting Falcon" style="width: 100%; height: 100%; object-fit: cover;">
-                  </div>
-                  <h3 class="work-title">1/72 F-16<br />Fighting Falcon</h3>
-                </div>
-
-                <div class="work-card">
-                  <div class="work-image">
-                    <img src="{% static 'images/images (1).jpg' %}" alt="Tiger I Tank" style="width: 100%; height: 100%; object-fit: cover;">
-                  </div>
-                  <h3 class="work-title">1/35 German<br />Tiger I</h3>
-                </div>
-
-                <div class="work-card">
-                  <div class="work-image">
-                    <img src="{% static 'images/Earhart-3-scaled.jpg' %}" alt="P-51 Mustang" style="width: 100%; height: 100%; object-fit: cover;">
-                  </div>
-                  <h3 class="work-title">1/48 P-51<br />Mustang</h3>
-                </div>
-
-                <div class="work-card">
-                  <div class="work-image">
-                    <img src="{% static 'images/Orange-colored-cat-yawns-displaying-teeth.webp' %}" alt="Bismarck Battleship" style="width: 100%; height: 100%; object-fit: cover;">
-                  </div>
-                  <h3 class="work-title">1/350 Bismarck<br />Battleship</h3>
-                </div>
-
-                <div class="work-card">
-                  <div class="work-image">
-                    <img src="{% static 'images/images.jpg' %}" alt="Sherman Tank" style="width: 100%; height: 100%; object-fit: cover;">
-                  </div>
-                  <h3 class="work-title">1/35 M4<br />Sherman</h3>
-                </div>
-
-                <div class="work-card">
-                  <div class="work-image">
-                    <img src="{% static 'images/images (1).jpg' %}" alt="Yamato Battleship" style="width: 100%; height: 100%; object-fit: cover;">
-                  </div>
-                  <h3 class="work-title">1/700 IJN<br />Yamato</h3>
-                </div>
+                {% for item in works_items %}
+                  <a class="work-card" href="{% url 'works' %}#{{ item.slug }}">
+                    <div class="work-image">
+                      <img src="{% static item.thumb %}" alt="{{ item.title }}">
+                    </div>
+                    <h3 class="work-title">{{ item.title }}</h3>
+                  </a>
+                {% endfor %}
               </div>
             </section>
 
             <!-- Featured Articles Section -->
             <section class="articles-section anim-up">
-              <div class="section-header">
-                <h2 class="section-title">Featured Articles</h2>
-                <a href="{% url 'articles' %}" class="view-all-link">View All</a>
-              </div>
+                <div class="section-header">
+                  <h2 class="section-title">Featured Articles</h2>
+                  <a href="{% url 'articles' %}" class="view-all-link">View All</a>
+                </div>
 
               <div class="article-list">
-                <article class="article-row">
+                <article class="article-row is-featured">
                   <div class="article-image" aria-hidden="true">
                     <img src="{% static 'images/images.jpg' %}" alt="Hawker Tempest" style="width: 100%; height: 100%; object-fit: cover;">
                   </div>
@@ -176,10 +131,13 @@
                     <p class="article-excerpt">
                       The Tempest was born out as an attempt to address the shortcomings of Hawker Typhoon. Work had been going on in the Hawker design office since 1940 on the development of a new thin wing section...
                     </p>
+                    <div class="article-meta">
+                      <span class="article-date">Aug 12, 2023</span>
+                    </div>
                   </div>
                 </article>
 
-                <article class="article-row">
+                <article class="article-row is-featured">
                   <div class="article-image" aria-hidden="true">
                     <img src="{% static 'images/images (1).jpg' %}" alt="PT 579/588" style="width: 100%; height: 100%; object-fit: cover;">
                   </div>
@@ -188,16 +146,22 @@
                     <p class="article-excerpt">
                       The Elco was the prominent boat used in the Pacific, and it came into its own as a gunboat. Proving especially effective when employed in the anti-shipping role...
                     </p>
+                    <div class="article-meta">
+                      <span class="article-date">Jul 28, 2023</span>
+                    </div>
                   </div>
                 </article>
 
-                <article class="article-row">
+                <article class="article-row is-featured">
                   <div class="article-image" aria-hidden="true"></div>
                   <div>
                     <h3 class="article-title">Building the Revell Monogram A-26 Invader</h3>
                     <p class="article-excerpt">
                       This kit originally made its appearance in 1993 as an A-26C under the Monogram label. However in 1986 Monogram and Revell had already merged...
                     </p>
+                    <div class="article-meta">
+                      <span class="article-date">Jun 10, 2023</span>
+                    </div>
                   </div>
                 </article>
               </div>

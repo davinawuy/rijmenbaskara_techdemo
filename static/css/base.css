@@ -99,25 +99,7 @@ html{
   transition: background-color 0.3s ease;
 }
 
-/* Optional subtle “editor” margin lines on the left (like your earlier mock) */
-.page::before{
-  content:"";
-  position:absolute;
-  top:0; bottom:0;
-  left: 40px;
-  width:1px;
-  background: rgba(11,11,11,.15);
-  pointer-events:none;
-}
-.page::after{
-  content:"";
-  position:absolute;
-  top:0; bottom:0;
-  left: 58px;
-  width:1px;
-  background: rgba(11,11,11,.10);
-  pointer-events:none;
-}
+/* Left guide lines removed for cleaner layout */
 
 /* We scroll the whole page now */
 .page-scroll{
