@@ -205,6 +205,17 @@
             </div>
 
             <div class="form-group">
+              <label for="category">Category*</label>
+              <select id="category" name="category" required style="width: 100%; padding: 12px; border: 1px solid var(--rule); border-radius: 4px; font-family: var(--sans); font-size: 14px; background: var(--bg); color: var(--ink);">
+                <option value="">Select a category...</option>
+                <option value="30k">30k</option>
+                <option value="40k">40k</option>
+                <option value="terrain">Terrain</option>
+                <option value="age-of-sigmar">Age of Sigmar</option>
+              </select>
+            </div>
+
+            <div class="form-group">
               <label>Upload Images* (Select multiple files)</label>
               <div class="file-upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
                 <div class="upload-icon">📁</div>

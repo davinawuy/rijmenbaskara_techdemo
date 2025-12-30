@@ -147,9 +147,31 @@ def contact(request):
     return render(request, 'contact.html')
 
 def home(request):
-    works_items = _load_works_items()
-    hero_images = _load_infinite_images() or works_items
-    return render(request, 'home.html', {"works_items": works_items, "hero_images": hero_images})
+    projects = _load_projects()[:6]  # Get first 6 projects for homepage
+    hero_images = []
+    
+    # Use project images for hero carousel
+    for project in projects:
+        for image in project.get('images', [])[:2]:  # Take up to 2 images per project
+            hero_images.append({
+                'src': f'images/{image}'
+            })
+    
+    # Prepare works items from projects
+    works_items = []
+    for project in projects:
+        if project.get('images'):
+            works_items.append({
+                'title': project.get('title', ''),
+                'slug': project.get('id', ''),
+                'thumb': f"images/{project['images'][0]}",
+                'category': project.get('category', '')
+            })
+    
+    return render(request, 'home.html', {
+        "works_items": works_items,
+        "hero_images": hero_images if hero_images else works_items
+    })
 
 def works(request):
     projects = _load_projects()
@@ -652,11 +674,14 @@ def add_project(request):
     if request.method == 'POST':
         title = request.POST.get('title', '').strip()
         description = request.POST.get('description', '').strip()
+        category = request.POST.get('category', '').strip()
         uploaded_images = request.FILES.getlist('images')
         
         errors = {}
         if not title:
             errors['title'] = 'Title is required.'
+        if not category:
+            errors['category'] = 'Category is required.'
         if not uploaded_images:
             errors['images'] = 'At least one image is required.'
         
@@ -685,6 +710,7 @@ def add_project(request):
                         "id": project_id,
                         "title": title.upper(),
                         "description": description,
+                        "category": category,
                         "images": saved_filenames,
                         "created_at": datetime.utcnow().isoformat()
                     }
@@ -712,12 +738,15 @@ def edit_project(request, project_id):
     if request.method == 'POST':
         title = request.POST.get('title', '').strip()
         description = request.POST.get('description', '').strip()
+        category = request.POST.get('category', '').strip()
         uploaded_images = request.FILES.getlist('new_images')
         keep_existing = request.POST.get('keep_existing', 'true') == 'true'
         
         errors = {}
         if not title:
             errors['title'] = 'Title is required.'
+        if not category:
+            errors['category'] = 'Category is required.'
         
         # Must have either existing images or upload new ones
         if not keep_existing and not uploaded_images:
@@ -742,6 +771,7 @@ def edit_project(request, project_id):
                     if p.get('id') == project_id:
                         p['title'] = title.upper()
                         p['description'] = description
+                        p['category'] = category
                         # Keep existing images if checkbox is checked, otherwise replace with new ones
                         if keep_existing and new_filenames:
                             p['images'] = p.get('images', []) + new_filenames

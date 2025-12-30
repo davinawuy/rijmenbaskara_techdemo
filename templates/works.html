@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="{% static 'css/works.css' %}">
   <script defer src="{% static 'js/lightbox.js' %}"></script>
   <script defer src="{% static 'js/carousel.js' %}"></script>
+  <script defer src="{% static 'js/filter.js' %}"></script>
 </head>
 
 <body>
@@ -56,11 +57,29 @@
               {% endif %}
             </section>
 
+            <!-- Search and Filter Controls -->
+            <section class="search-filter-section">
+              <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search projects..." aria-label="Search projects">
+                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.35-4.35"></path>
+                </svg>
+              </div>
+              <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="30k">30k</button>
+                <button class="filter-btn" data-filter="40k">40k</button>
+                <button class="filter-btn" data-filter="terrain">Terrain</button>
+                <button class="filter-btn" data-filter="age-of-sigmar">Age of Sigmar</button>
+              </div>
+            </section>
+
             <!-- Gallery Grid -->
             <section class="works-gallery-grid">
               
               {% for project in projects %}
-              <div class="project-section">
+              <div class="project-section" id="{{ project.id }}" data-project data-title="{{ project.title|lower }}" data-category="{{ project.category|default:'all' }}">
                 <div class="project-header">
                   <h2 class="project-title">{{ project.title }}</h2>
                   {% if is_admin %}

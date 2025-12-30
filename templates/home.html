@@ -106,11 +106,18 @@
                 {% for item in works_items %}
                   <a class="work-card" href="{% url 'works' %}#{{ item.slug }}">
                     <div class="work-image">
-                      <img src="{% static item.thumb %}" alt="{{ item.title }}">
+                      <img src="{% static item.thumb %}" alt="{{ item.title }}" loading="lazy">
                     </div>
                     <h3 class="work-title">{{ item.title }}</h3>
+                    {% if item.category %}
+                    <span class="work-category">{{ item.category|upper }}</span>
+                    {% endif %}
                   </a>
                 {% endfor %}
+              </div>
+              
+              <div class="view-more-wrap">
+                <a href="{% url 'works' %}" class="view-more-btn">View All Projects</a>
               </div>
             </section>
 

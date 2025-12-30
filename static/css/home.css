@@ -213,6 +213,20 @@
   backdrop-filter: blur(3px);
 }
 
+.work-category{
+  display: inline-block;
+  padding: 4px 10px;
+  margin: 0 12px 12px;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--bg);
+  background: var(--ink);
+  border-radius: 999px;
+}
+
 [data-theme="dark"] .work-card{
   background: var(--bg);
 }

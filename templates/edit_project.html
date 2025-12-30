@@ -244,6 +244,17 @@
             </div>
 
             <div class="form-group">
+              <label for="category">Category*</label>
+              <select id="category" name="category" required style="width: 100%; padding: 12px; border: 1px solid var(--rule); border-radius: 4px; font-family: var(--sans); font-size: 14px; background: var(--bg); color: var(--ink);">
+                <option value="">Select a category...</option>
+                <option value="30k" {% if project.category == '30k' %}selected{% endif %}>30k</option>
+                <option value="40k" {% if project.category == '40k' %}selected{% endif %}>40k</option>
+                <option value="terrain" {% if project.category == 'terrain' %}selected{% endif %}>Terrain</option>
+                <option value="age-of-sigmar" {% if project.category == 'age-of-sigmar' %}selected{% endif %}>Age of Sigmar</option>
+              </select>
+            </div>
+
+            <div class="form-group">
               <div class="current-images">
                 <h3>Current Images ({{ project.images|length }})</h3>
                 <div class="current-images-grid">
