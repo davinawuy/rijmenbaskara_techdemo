@@ -100,81 +100,131 @@
 
             <!-- Works Section -->
             <section class="works-section anim-up">
-              <h2 class="section-title">Works</h2>
+              <div class="section-header-row">
+                <h2 class="section-title">Works</h2>
+                <a href="{% url 'works' %}" class="view-all-btn">View all projects <span aria-hidden="true">→</span></a>
+              </div>
 
-              <div class="works-grid">
+              <!-- Browse Bar -->
+              <div class="browse-bar">
+                <div class="search-box">
+                  <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                  </svg>
+                  <input type="text" id="worksSearch" placeholder="Search projects…" aria-label="Search projects">
+                </div>
+                <select id="worksSort" class="sort-dropdown" aria-label="Sort projects">
+                  <option value="az">A–Z</option>
+                  <option value="za">Z–A</option>
+                </select>
+                <div class="filter-chips">
+                  <button class="filter-chip active" data-category="all">All</button>
+                  <button class="filter-chip" data-category="30k">30k</button>
+                  <button class="filter-chip" data-category="40k">40k</button>
+                  <button class="filter-chip" data-category="terrain">Terrain</button>
+                  <button class="filter-chip" data-category="age-of-sigmar">AoS</button>
+                </div>
+              </div>
+
+              <div class="works-grid" id="worksGrid">
                 {% for item in works_items %}
-                  <a class="work-card" href="{% url 'works' %}#{{ item.slug }}">
+                  <a class="work-card" href="{% url 'works' %}#{{ item.slug }}" data-category="{{ item.category|default:'all' }}" data-title="{{ item.title|lower }}">
                     <div class="work-image">
                       <img src="{% static item.thumb %}" alt="{{ item.title }}" loading="lazy">
+                      <div class="view-overlay">
+                        <span class="view-arrow">View →</span>
+                      </div>
                     </div>
-                    <h3 class="work-title">{{ item.title }}</h3>
-                    {% if item.category %}
-                    <span class="work-category">{{ item.category|upper }}</span>
-                    {% endif %}
+                    <div class="work-info">
+                      <h3 class="work-title">{{ item.title }}</h3>
+                      {% if item.category %}
+                      <div class="work-tags">
+                        <span class="tag-pill">{{ item.category|upper }}</span>
+                      </div>
+                      {% endif %}
+                    </div>
                   </a>
                 {% endfor %}
-              </div>
-              
-              <div class="view-more-wrap">
-                <a href="{% url 'works' %}" class="view-more-btn">View All Projects</a>
               </div>
             </section>
 
             <!-- Featured Articles Section -->
             <section class="articles-section anim-up">
-                <div class="section-header">
+                <div class="section-header-row">
                   <h2 class="section-title">Featured Articles</h2>
-                  <a href="{% url 'articles' %}" class="view-all-link">View All</a>
+                  <a href="{% url 'articles' %}" class="view-all-btn">View all articles <span aria-hidden="true">→</span></a>
+                </div>
+
+                <!-- Optional Category Filter -->
+                <div class="article-filters">
+                  <button class="filter-chip active" data-filter="all">All</button>
+                  <button class="filter-chip" data-filter="reviews">Reviews</button>
+                  <button class="filter-chip" data-filter="tutorials">Tutorials</button>
+                  <button class="filter-chip" data-filter="news">News</button>
                 </div>
 
               <div class="article-list">
-                <article class="article-row is-featured">
-                  <div class="article-image" aria-hidden="true">
-                    <img src="{% static 'images/images.jpg' %}" alt="Hawker Tempest" style="width: 100%; height: 100%; object-fit: cover;">
+                <a href="#" class="article-row is-featured" data-category="reviews">
+                  <div class="article-thumbnail">
+                    <img src="{% static 'images/images.jpg' %}" alt="Hawker Tempest" loading="lazy">
                   </div>
-                  <div>
-                    <h3 class="article-title">The Definitive Eduard Hawker Tempest Mk.V Review</h3>
+                  <div class="article-content">
+                    <div class="article-header">
+                      <h3 class="article-title">The Definitive Eduard Hawker Tempest Mk.V Review</h3>
+                      <span class="tag-pill">Review</span>
+                    </div>
                     <p class="article-excerpt">
-                      The Tempest was born out as an attempt to address the shortcomings of Hawker Typhoon. Work had been going on in the Hawker design office since 1940 on the development of a new thin wing section...
+                      The Tempest was born out as an attempt to address the shortcomings of Hawker Typhoon. Work had been going on in the Hawker design office since 1940...
                     </p>
                     <div class="article-meta">
                       <span class="article-date">Aug 12, 2023</span>
+                      <span class="article-reading-time">5 min read</span>
                     </div>
                   </div>
-                </article>
+                </a>
 
-                <article class="article-row is-featured">
-                  <div class="article-image" aria-hidden="true">
-                    <img src="{% static 'images/images (1).jpg' %}" alt="PT 579/588" style="width: 100%; height: 100%; object-fit: cover;">
+                <a href="#" class="article-row is-featured" data-category="tutorials">
+                  <div class="article-thumbnail">
+                    <img src="{% static 'images/images (1).jpg' %}" alt="PT 579/588" loading="lazy">
                   </div>
-                  <div>
-                    <h3 class="article-title">Building the Revell PT 579/588</h3>
+                  <div class="article-content">
+                    <div class="article-header">
+                      <h3 class="article-title">Building the Revell PT 579/588</h3>
+                      <span class="tag-pill">Tutorial</span>
+                    </div>
                     <p class="article-excerpt">
-                      The Elco was the prominent boat used in the Pacific, and it came into its own as a gunboat. Proving especially effective when employed in the anti-shipping role...
+                      The Elco was the prominent boat used in the Pacific, and it came into its own as a gunboat. Proving especially effective when employed...
                     </p>
                     <div class="article-meta">
                       <span class="article-date">Jul 28, 2023</span>
+                      <span class="article-reading-time">8 min read</span>
                     </div>
                   </div>
-                </article>
+                </a>
 
-                <article class="article-row is-featured">
-                  <div class="article-image" aria-hidden="true"></div>
-                  <div>
-                    <h3 class="article-title">Building the Revell Monogram A-26 Invader</h3>
+                <a href="#" class="article-row is-featured" data-category="tutorials">
+                  <div class="article-thumbnail">
+                    <img src="{% static 'images/Earhart-3-scaled.jpg' %}" alt="A-26 Invader" loading="lazy">
+                  </div>
+                  <div class="article-content">
+                    <div class="article-header">
+                      <h3 class="article-title">Building the Revell Monogram A-26 Invader</h3>
+                      <span class="tag-pill">Tutorial</span>
+                    </div>
                     <p class="article-excerpt">
                       This kit originally made its appearance in 1993 as an A-26C under the Monogram label. However in 1986 Monogram and Revell had already merged...
                     </p>
                     <div class="article-meta">
                       <span class="article-date">Jun 10, 2023</span>
+                      <span class="article-reading-time">6 min read</span>
                     </div>
                   </div>
-                </article>
+                </a>
               </div>
 
               <div class="view-more-wrap">
-                <a href="{% url 'articles' %}" class="view-more-btn">View More</a>
+                <a href="{% url 'articles' %}" class="view-all-btn">View more articles <span aria-hidden="true">→</span></a>
               </div>
             </section>
 
