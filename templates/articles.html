@@ -86,9 +86,18 @@
                       {% for item in items %}
                         <div class="article-item">
                           <span class="article-date">{{ item.created_at|format_article_date }}</span>
-                          <a href="{% url 'article_detail' item.id|default:item.slug %}" class="article-link">
-                            {{ item.title }}
-                          </a>
+                          <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                            <a href="{% url 'article_detail' item.id|default:item.slug %}" class="article-link">
+                              {{ item.title }}
+                            </a>
+                            {% if item.tags %}
+                              <div class="tag-row">
+                                {% for tag in item.tags %}
+                                  <span class="tag-chip">{{ tag }}</span>
+                                {% endfor %}
+                              </div>
+                            {% endif %}
+                          </div>
                         </div>
                       {% endfor %}
                     </div>

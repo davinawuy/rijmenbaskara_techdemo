@@ -169,9 +169,14 @@ def home(request):
                 'category': project.get('category', '')
             })
     
+    # Get featured articles
+    all_articles = _load_articles()
+    featured_articles = [a for a in all_articles if a.get("featured", False)][:3]
+    
     return render(request, 'home.html', {
         "works_items": works_items,
-        "hero_images": hero_images if hero_images else works_items
+        "hero_images": hero_images if hero_images else works_items,
+        "featured_articles": featured_articles
     })
 
 def works(request):
@@ -269,6 +274,27 @@ def manage_articles(request):
         return redirect('articles')
     items = _load_articles()
     return render(request, 'manage_articles.html', {"articles": items})
+
+
+def toggle_featured(request, article_id):
+    """Toggle the featured status of an article"""
+    if not _ensure_staff(request):
+        return JsonResponse({"error": "Unauthorized"}, status=403)
+    
+    try:
+        article = _load_article(article_id)
+        article["featured"] = not article.get("featured", False)
+        
+        # Save the article
+        path = _article_path(article_id)
+        path.write_text(json.dumps(article, indent=2), encoding="utf-8")
+        
+        return JsonResponse({
+            "success": True, 
+            "featured": article["featured"]
+        })
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
 
 
 def export_content_backup(request):

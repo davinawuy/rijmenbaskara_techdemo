@@ -157,71 +157,40 @@
                   <a href="{% url 'articles' %}" class="view-all-btn">View all articles <span aria-hidden="true">→</span></a>
                 </div>
 
-                <!-- Optional Category Filter -->
-                <div class="article-filters">
-                  <button class="filter-chip active" data-filter="all">All</button>
-                  <button class="filter-chip" data-filter="reviews">Reviews</button>
-                  <button class="filter-chip" data-filter="tutorials">Tutorials</button>
-                  <button class="filter-chip" data-filter="news">News</button>
-                </div>
-
               <div class="article-list">
-                <a href="#" class="article-row is-featured" data-category="reviews">
-                  <div class="article-thumbnail">
-                    <img src="{% static 'images/images.jpg' %}" alt="Hawker Tempest" loading="lazy">
-                  </div>
-                  <div class="article-content">
-                    <div class="article-header">
-                      <h3 class="article-title">The Definitive Eduard Hawker Tempest Mk.V Review</h3>
-                      <span class="tag-pill">Review</span>
-                    </div>
-                    <p class="article-excerpt">
-                      The Tempest was born out as an attempt to address the shortcomings of Hawker Typhoon. Work had been going on in the Hawker design office since 1940...
-                    </p>
-                    <div class="article-meta">
-                      <span class="article-date">Aug 12, 2023</span>
-                      <span class="article-reading-time">5 min read</span>
-                    </div>
-                  </div>
-                </a>
-
-                <a href="#" class="article-row is-featured" data-category="tutorials">
-                  <div class="article-thumbnail">
-                    <img src="{% static 'images/images (1).jpg' %}" alt="PT 579/588" loading="lazy">
-                  </div>
-                  <div class="article-content">
-                    <div class="article-header">
-                      <h3 class="article-title">Building the Revell PT 579/588</h3>
-                      <span class="tag-pill">Tutorial</span>
-                    </div>
-                    <p class="article-excerpt">
-                      The Elco was the prominent boat used in the Pacific, and it came into its own as a gunboat. Proving especially effective when employed...
-                    </p>
-                    <div class="article-meta">
-                      <span class="article-date">Jul 28, 2023</span>
-                      <span class="article-reading-time">8 min read</span>
-                    </div>
-                  </div>
-                </a>
-
-                <a href="#" class="article-row is-featured" data-category="tutorials">
-                  <div class="article-thumbnail">
-                    <img src="{% static 'images/Earhart-3-scaled.jpg' %}" alt="A-26 Invader" loading="lazy">
-                  </div>
-                  <div class="article-content">
-                    <div class="article-header">
-                      <h3 class="article-title">Building the Revell Monogram A-26 Invader</h3>
-                      <span class="tag-pill">Tutorial</span>
-                    </div>
-                    <p class="article-excerpt">
-                      This kit originally made its appearance in 1993 as an A-26C under the Monogram label. However in 1986 Monogram and Revell had already merged...
-                    </p>
-                    <div class="article-meta">
-                      <span class="article-date">Jun 10, 2023</span>
-                      <span class="article-reading-time">6 min read</span>
-                    </div>
-                  </div>
-                </a>
+                {% if featured_articles %}
+                  {% for article in featured_articles %}
+                    <a href="{% url 'article_detail' article.id|default:article.slug %}" class="article-row is-featured">
+                      {% if article.cover %}
+                      <div class="article-thumbnail">
+                        <img src="{{ article.cover }}" alt="{{ article.title }}" loading="lazy">
+                      </div>
+                      {% endif %}
+                      <div class="article-content">
+                        <div class="article-header">
+                          <h3 class="article-title">{{ article.title }}</h3>
+                          {% if article.tags %}
+                            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                              {% for tag in article.tags %}
+                                <span class="tag-pill">{{ tag }}</span>
+                              {% endfor %}
+                            </div>
+                          {% endif %}
+                        </div>
+                        {% if article.subtitle %}
+                        <p class="article-excerpt">
+                          {{ article.subtitle }}
+                        </p>
+                        {% endif %}
+                        <div class="article-meta">
+                          <span class="article-date">{{ article.created_at|slice:"6:8" }}/{{ article.created_at|slice:"4:6" }}/{{ article.created_at|slice:":4" }}</span>
+                        </div>
+                      </div>
+                    </a>
+                  {% endfor %}
+                {% else %}
+                  <p style="font-family: var(--sans); color: var(--muted); padding: 20px 0;">No featured articles yet. Mark articles as featured in the manage section.</p>
+                {% endif %}
               </div>
 
               <div class="view-more-wrap">
