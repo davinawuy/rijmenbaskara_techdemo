@@ -143,7 +143,7 @@
           img.style.maxWidth = '100%';
           img.style.height = 'auto';
           img.style.display = 'block';
-          img.style.margin = '20px 0';
+          img.style.margin = '20px auto';
 
           // Insert at saved range or at end
           if (range) {
