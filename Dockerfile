@@ -29,8 +29,12 @@ RUN mkdir -p /app/articles_store/covers \
 # Collect static files
 RUN python manage.py collectstatic --noinput
 
+# Copy entrypoint script
+COPY entrypoint.sh /app/
+RUN chmod +x /app/entrypoint.sh
+
 # Expose port 8000
 EXPOSE 8000
 
-# Run gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "rijmenbaskara.wsgi:application"]
+# Run entrypoint script
+CMD ["/app/entrypoint.sh"]
