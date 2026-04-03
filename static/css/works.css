@@ -22,8 +22,10 @@ html {
   margin: 0;
   font-family: var(--serif);
   font-weight: 600;
-  font-size: clamp(2.8rem, 5vw, 4rem);
+  text-transform: uppercase;
+  font-size: clamp(4.2rem, 7.2vw, 7rem);
   letter-spacing: 0.01em;
+  line-height: 1;
 }
 
 .works-subtitle{
