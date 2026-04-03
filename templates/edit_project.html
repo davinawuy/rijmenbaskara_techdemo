@@ -258,9 +258,9 @@
               <div class="current-images">
                 <h3>Current Images ({{ project.images|length }})</h3>
                 <div class="current-images-grid">
-                  {% for image in project.images %}
+                  {% for image_url in project.image_urls %}
                   <div class="current-image-item">
-                    <img src="{% static 'images/' %}{{ image }}" alt="{{ image }}">
+                    <img src="{{ image_url }}" alt="Current project image {{ forloop.counter }}">
                   </div>
                   {% endfor %}
                 </div>

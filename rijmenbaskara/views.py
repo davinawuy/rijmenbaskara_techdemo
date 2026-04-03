@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, Http404, JsonResponse
+from django.http import FileResponse, HttpResponse, Http404, JsonResponse
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
@@ -10,6 +10,7 @@ from pathlib import Path
 import json
 import re
 from datetime import datetime
+from typing import Optional
 import zipfile
 import io
 
@@ -18,6 +19,36 @@ ARTICLES_DIR = Path(settings.BASE_DIR) / "articles_store"
 ARTICLES_DIR.mkdir(exist_ok=True)
 ARTICLES_COVERS_DIR = ARTICLES_DIR / "covers"
 ARTICLES_COVERS_DIR.mkdir(exist_ok=True)
+PROJECT_UPLOADS_DIR = Path(settings.MEDIA_ROOT) / "projects"
+PROJECT_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+GALLERIES_UPLOADS_DIR = Path(settings.MEDIA_ROOT) / "galleries"
+GALLERIES_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+LEGACY_STATIC_IMAGES_DIR = Path(settings.BASE_DIR) / "static" / "images"
+
+
+def _media_url(*parts: str) -> str:
+    cleaned = "/".join(str(part).strip("/") for part in parts if part)
+    return f"{settings.MEDIA_URL}{cleaned}"
+
+
+def _project_image_url(image_ref: Optional[str]) -> Optional[str]:
+    if not image_ref:
+        return None
+    if image_ref.startswith(("http://", "https://", settings.MEDIA_URL, settings.STATIC_URL)):
+        return image_ref
+
+    normalized = image_ref.strip().replace("\\", "/").lstrip("/")
+    if normalized.startswith(("projects/", "galleries/", "covers/")):
+        return _media_url(normalized)
+
+    return _media_url("legacy-static", Path(normalized).name)
+
+
+def _with_project_image_urls(project: dict) -> dict:
+    normalized = project.copy()
+    normalized["image_urls"] = [_project_image_url(image) for image in project.get("images", [])]
+    normalized["thumb_url"] = normalized["image_urls"][0] if normalized["image_urls"] else None
+    return normalized
 
 
 def _slugify(value: str) -> str:
@@ -78,27 +109,22 @@ def _save_projects(projects):
 
 
 def _save_project_image(uploaded_file):
-    """Save an uploaded image to static/images and return the filename"""
+    """Save an uploaded image to MEDIA_ROOT/projects and return its relative media path."""
     import hashlib
-    from django.core.files.storage import default_storage
-    
+
     # Generate unique filename
     ext = Path(uploaded_file.name).suffix.lower()
     timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
     hash_part = hashlib.md5(uploaded_file.read()).hexdigest()[:8]
     uploaded_file.seek(0)  # Reset file pointer
     filename = f"project_{timestamp}_{hash_part}{ext}"
-    
-    # Save to static/images
-    images_dir = Path(settings.BASE_DIR) / "static" / "images"
-    images_dir.mkdir(parents=True, exist_ok=True)
-    filepath = images_dir / filename
-    
+
+    filepath = PROJECT_UPLOADS_DIR / filename
     with open(filepath, 'wb+') as destination:
         for chunk in uploaded_file.chunks():
             destination.write(chunk)
-    
-    return filename
+
+    return f"projects/{filename}"
 
 
 def _ensure_staff(request):
@@ -114,7 +140,6 @@ TAG_CHOICES = [
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".tif", ".tiff"}
 WORKS_MAX_ITEMS = 10
-GALLERIES_DIR = Path(settings.BASE_DIR) / "static" / "images" / "galleries"
 PROJECTS_DIR = Path(settings.BASE_DIR) / "projects_store"
 PROJECTS_DIR.mkdir(exist_ok=True)
 
@@ -148,39 +173,40 @@ def contact(request):
     return render(request, 'contact.html')
 
 def home(request):
-    projects = _load_projects()[:6]  # Get first 6 projects for homepage
+    projects = [_with_project_image_urls(project) for project in _load_projects()[:6]]
     hero_images = []
-    
+
     # Use project images for hero carousel
     for project in projects:
-        for image in project.get('images', [])[:2]:  # Take up to 2 images per project
+        for image_url in project.get('image_urls', [])[:2]:
             hero_images.append({
-                'src': f'images/{image}'
+                'url': image_url
             })
-    
+
     # Prepare works items from projects
     works_items = []
     for project in projects:
-        if project.get('images'):
+        if project.get('thumb_url'):
             works_items.append({
                 'title': project.get('title', ''),
                 'slug': project.get('id', ''),
-                'thumb': f"images/{project['images'][0]}",
+                'thumb_url': project.get('thumb_url'),
                 'category': project.get('category', '')
             })
-    
+
     # Get featured articles
     all_articles = _load_articles()
     featured_articles = [a for a in all_articles if a.get("featured", False)][:3]
-    
+
+    fallback_hero_images = [{"url": item["thumb_url"]} for item in works_items if item.get("thumb_url")]
     return render(request, 'home.html', {
         "works_items": works_items,
-        "hero_images": hero_images if hero_images else works_items,
+        "hero_images": hero_images if hero_images else fallback_hero_images,
         "featured_articles": featured_articles
     })
 
 def works(request):
-    projects = _load_projects()
+    projects = [_with_project_image_urls(project) for project in _load_projects()]
     return render(request, 'works.html', {
         "projects": projects,
         "is_admin": request.user.is_authenticated and request.user.is_staff,
@@ -502,7 +528,7 @@ def _article_form(request, article_id=None, is_edit=False):
                 with target.open('wb') as fh:
                     for chunk in cover_file.chunks():
                         fh.write(chunk)
-                cover_path = f"{settings.MEDIA_URL}covers/{cover_name}"
+                cover_path = _media_url("covers", cover_name)
 
             record["cover"] = cover_path
             record["id"] = article_id
@@ -594,7 +620,7 @@ def _count_upload_photos(uploads_dir: Path, meta_path: Path) -> int:
 
 
 def _gallery_dir(gallery_id: str) -> Path:
-    return GALLERIES_DIR / _slugify(gallery_id or "default")
+    return GALLERIES_UPLOADS_DIR / _slugify(gallery_id or "default")
 
 
 def _gallery_meta_path(gallery_id: str) -> Path:
@@ -648,8 +674,8 @@ def _save_gallery_item(gallery_id: str, title: str, image_file, thumb_file):
     item = {
         "id": item_id,
         "title": title,
-        "src": f"/static/images/galleries/{_slugify(gallery_id)}/{image_name}",
-        "thumb": f"/static/images/galleries/{_slugify(gallery_id)}/{thumb_name}",
+        "src": _media_url("galleries", _slugify(gallery_id), image_name),
+        "thumb": _media_url("galleries", _slugify(gallery_id), thumb_name),
         "createdAt": timestamp,
         "tags": ["Quality:Upload", "Genre:Misc"],
     }
@@ -687,7 +713,7 @@ def _delete_gallery_item(gallery_id: str, item_id: str):
 
 
 def _load_works_items():
-    uploads_dir = Path(settings.BASE_DIR) / "static" / "images" / "works_uploads"
+    uploads_dir = Path(settings.MEDIA_ROOT) / "works_uploads"
     uploads_dir.mkdir(parents=True, exist_ok=True)
     uploads_meta = _load_works_meta(uploads_dir / "works_meta.json")
     thumb_files = {entry.get("thumb") for entry in uploads_meta.values() if isinstance(entry, dict) and entry.get("thumb")}
@@ -706,22 +732,21 @@ def _load_works_items():
             tags.append("Quality:Upload")
         if not any(tag.startswith("Genre:") for tag in tags):
             tags.append("Genre:Misc")
-        thumb_path = f"images/works_uploads/{thumb_override}" if thumb_override else f"images/works_uploads/{path.name}"
         upload_items.append({
             "title": title,
-            "images": [f"images/works_uploads/{path.name}"],
+            "images": [_media_url("works_uploads", path.name)],
             "tags": tags,
             "slug": _slugify(title),
-            "thumb": thumb_path,
+            "thumb": _media_url("works_uploads", thumb_override) if thumb_override else _media_url("works_uploads", path.name),
         })
 
     # Sensei gallery sample from infinitecarousel (single, larger gallery)
-    sensei_dir = Path(settings.BASE_DIR) / "static" / "images" / "infinitecarousel"
+    sensei_dir = Path(settings.MEDIA_ROOT) / "infinitecarousel"
     sensei_images = []
     if sensei_dir.exists():
         for path in sorted(sensei_dir.glob("*")):
             if path.is_file() and path.suffix.lower() in IMAGE_EXTS:
-                sensei_images.append(f"images/infinitecarousel/{path.name}")
+                sensei_images.append(_media_url("infinitecarousel", path.name))
     sensei_items = []
     if sensei_images:
         sensei_items.append({
@@ -742,13 +767,13 @@ def _load_works_items():
 
 
 def _load_infinite_images():
-    images_dir = Path(settings.BASE_DIR) / "static" / "images" / "infinitecarousel"
+    images_dir = Path(settings.MEDIA_ROOT) / "infinitecarousel"
     if not images_dir.exists():
         return []
     items = []
     for path in sorted(images_dir.glob("*")):
         if path.is_file() and path.suffix.lower() in IMAGE_EXTS:
-            items.append({"src": f"images/infinitecarousel/{path.name}"})
+            items.append({"src": _media_url("infinitecarousel", path.name)})
     return items
 
 
@@ -869,7 +894,7 @@ def edit_project(request, project_id):
     if not _ensure_staff(request):
         return redirect('works')
     
-    project = _load_project(project_id)
+    project = _with_project_image_urls(_load_project(project_id))
     
     if request.method == 'POST':
         title = request.POST.get('title', '').strip()
@@ -946,4 +971,31 @@ def delete_project(request, project_id):
         messages.success(request, 'Project deleted successfully!')
     
     return redirect('works')
+
+
+def serve_media(request, path):
+    normalized = path.replace("\\", "/").lstrip("/")
+    allowed_roots = {
+        "covers": Path(settings.MEDIA_ROOT) / "covers",
+        "projects": Path(settings.MEDIA_ROOT) / "projects",
+        "galleries": Path(settings.MEDIA_ROOT) / "galleries",
+        "works_uploads": Path(settings.MEDIA_ROOT) / "works_uploads",
+        "infinitecarousel": Path(settings.MEDIA_ROOT) / "infinitecarousel",
+        "legacy-static": LEGACY_STATIC_IMAGES_DIR,
+    }
+
+    top_level = normalized.split("/", 1)[0]
+    root_dir = allowed_roots.get(top_level)
+    if root_dir is None:
+        raise Http404("File not found")
+
+    relative_path = normalized[len(top_level):].lstrip("/")
+    candidate = (root_dir / relative_path).resolve() if relative_path else root_dir.resolve()
+    root_resolved = root_dir.resolve()
+    if root_resolved not in candidate.parents and candidate != root_resolved:
+        raise Http404("File not found")
+    if not candidate.exists() or not candidate.is_file():
+        raise Http404("File not found")
+
+    return FileResponse(candidate.open("rb"))
 

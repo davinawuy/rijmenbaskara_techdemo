@@ -104,9 +104,9 @@
                       </svg>
                     </button>
                     <div class="carousel-track">
-                      {% for image in project.images %}
-                      <div class="carousel-slide {% if forloop.first %}active{% endif %}" data-lightbox="project-{{ project.id }}" data-image="{% static 'images/' %}{{ image }}">
-                        <img src="{% static 'images/' %}{{ image }}" alt="{{ project.title }}" loading="lazy">
+                      {% for image_url in project.image_urls %}
+                      <div class="carousel-slide {% if forloop.first %}active{% endif %}" data-lightbox="project-{{ project.id }}" data-image="{{ image_url }}">
+                        <img src="{{ image_url }}" alt="{{ project.title }}" loading="lazy">
                       </div>
                       {% endfor %}
                     </div>
@@ -117,9 +117,9 @@
                     </button>
                   </div>
                   <div class="carousel-pagination">
-                    {% for image in project.images %}
+                    {% for image_url in project.image_urls %}
                     <button class="pagination-thumb {% if forloop.first %}active{% endif %}" aria-label="Go to image {{ forloop.counter }}">
-                      <img src="{% static 'images/' %}{{ image }}" alt="Thumbnail {{ forloop.counter }}">
+                      <img src="{{ image_url }}" alt="Thumbnail {{ forloop.counter }}">
                     </button>
                     {% endfor %}
                   </div>

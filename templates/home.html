@@ -60,14 +60,14 @@
                     <div class="marquee-group">
                       {% for item in hero_images %}
                         <div class="marquee-card">
-                          <img src="{% static item.src %}" alt="Gallery image">
+                          <img src="{{ item.url }}" alt="Gallery image">
                         </div>
                       {% endfor %}
                     </div>
                     <div class="marquee-group" aria-hidden="true">
                       {% for item in hero_images %}
                         <div class="marquee-card">
-                          <img src="{% static item.src %}" alt="Gallery image">
+                          <img src="{{ item.url }}" alt="Gallery image">
                         </div>
                       {% endfor %}
                     </div>
@@ -76,14 +76,14 @@
                     <div class="marquee-group">
                       {% for item in hero_images %}
                         <div class="marquee-card">
-                          <img src="{% static item.src %}" alt="Gallery image">
+                          <img src="{{ item.url }}" alt="Gallery image">
                         </div>
                       {% endfor %}
                     </div>
                     <div class="marquee-group" aria-hidden="true">
                       {% for item in hero_images %}
                         <div class="marquee-card">
-                          <img src="{% static item.src %}" alt="Gallery image">
+                          <img src="{{ item.url }}" alt="Gallery image">
                         </div>
                       {% endfor %}
                     </div>
@@ -132,7 +132,7 @@
                 {% for item in works_items %}
                   <a class="work-card" href="{% url 'works' %}#{{ item.slug }}" data-category="{{ item.category|default:'all' }}" data-title="{{ item.title|lower }}">
                     <div class="work-image">
-                      <img src="{% static item.thumb %}" alt="{{ item.title }}" loading="lazy">
+                      <img src="{{ item.thumb_url }}" alt="{{ item.title }}" loading="lazy">
                       <div class="view-overlay">
                         <span class="view-arrow">View →</span>
                       </div>
