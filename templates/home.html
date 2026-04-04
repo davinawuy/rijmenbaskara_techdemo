@@ -53,11 +53,11 @@
             <section class="hero-section anim-fade">
               <div class="hero-slogan">
                 <!-- unbold creates bespoke miniatures for sama and , capitalize artistic, interactive, historical display -->
-                  <span class="bold">RIJMEN &amp; BASKARA</span> 
+                  RIJMEN &amp; BASKARA
                   creates bespoke miniatures for 
-                  <span class="bold">artistic</span>, 
-                  <span class="bold">interactive</span>, and 
-                  <span class="bold">historical display</span> 
+                  artistic, 
+                  interactive, and 
+                  historical display
               </div>
               <div class="marquee-frame">
                 <div class="marquee-banner">
@@ -98,8 +98,10 @@
             </section>
 
             <section class="about-works anim-fade">
-              <p class="about-works__body">
+              <p class="hero-slogan">
+              {% comment %} <p class="about-works__body"> {% endcomment %}
                 From battlefield-ready units to competition-winning displays, every piece we create is tailored to your style and built to your standard.
+              {% comment %} </p> {% endcomment %}
               </p>
               <div class="about-works__line"></div>
             </section>
@@ -107,7 +109,7 @@
             <!-- Works Section -->
             <section class="works-section anim-up">
               <div class="section-header-row">
-                <h2 class="section-title">Works</h2>
+                <div class="hero-slogan">Works</div>
                 <a href="{% url 'works' %}" class="view-all-btn">View all projects <span aria-hidden="true">→</span></a>
               </div>
 
@@ -158,7 +160,7 @@
             <!-- Featured Articles Section -->
             <section class="articles-section anim-up">
                 <div class="section-header-row">
-                  <h2 class="section-title">Featured Articles</h2>
+                  <div class="hero-slogan">Featured Articles</div>
                   <a href="{% url 'articles' %}" class="view-all-btn">View all articles <span aria-hidden="true">→</span></a>
                 </div>
 
@@ -173,9 +175,11 @@
                       {% endif %}
                       <div class="article-content">
                         <div class="article-header">
-                          <h3 class="article-title">{{ article.title }}</h3>
+                          <div>
+                            <h3 class="article-title">{{ article.title }}</h3>
+                          </div>
                           {% if article.tags %}
-                            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                            <div>
                               {% for tag in article.tags %}
                                 <span class="tag-pill">{{ tag }}</span>
                               {% endfor %}
@@ -222,9 +226,9 @@
                   <div class="footer__label">Rijmen &amp; Baskara</div>
                   <div class="footer__meta">
                     <a href="tel:+628119695661">+628119695661</a><br />
-                    <a href="mailto:rijmenbaskara@works.com">rijmenbaskara@works.com</a><br />
+                    <a href="mailto:rijmenbaskara@gmail.com">rijmenbaskara@gmail.com</a><br />
                     <a href="https://facebook.com" target="_blank" rel="noopener">Facebook</a><br />
-                    <a href="https://instagram.com" target="_blank" rel="noopener">Instagram</a>
+                    <a href="https://www.instagram.com/rijmenbaskara/" target="_blank" rel="noopener">Instagram</a>
                   </div>
                 </div>
 

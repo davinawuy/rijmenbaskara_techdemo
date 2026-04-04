@@ -18,21 +18,12 @@
 .hero-subtitle,
 .hero-description{ display: none; }
 
-.hero-slogan{
-  margin: 0 0 18px;
-  word-spacing: 0.2rem;
-  letter-spacing: 0em;
-  line-height: 1.1;
-}
-
 .hero-slogan {
+  margin: 0;
   font-family: var(--serif);
-  font-weight: 0;
-  font-size: clamp(1.6rem, 4vw, 2.8rem);
-}
-
-.hero-slogan .bold {
-  font-weight: 600;
+  font-weight: 400;
+  font-size: clamp(2.1rem, 4vw, 2.6rem);
+  letter-spacing: 0.01em;
 }
 
 .video-placeholder{
@@ -419,15 +410,15 @@
 
 .tag-pill{
   display: inline-block;
-  padding: 3px 8px;
+  padding: 5px 8px;
   font-family: var(--sans);
   font-weight: 600;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--bg);
-  background: var(--ink);
-  border-radius: 0;
+  color: var(--ink);
+  background: var(--bg);
+  outline: 1px solid rgb(from var(--ink) r g b / 0.2);
 }
 
 [data-theme="dark"] .work-card{
@@ -539,7 +530,7 @@
 .article-title{
   margin: 0;
   font-family: var(--serif);
-  font-weight: 600;
+  font-weight: 400;
   font-size: clamp(18px, 2vw, 22px);
   letter-spacing: -0.02em;
   line-height: 1.2;
@@ -563,6 +554,9 @@
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.article-tags{
 }
 
 .article-meta{
