@@ -9,13 +9,12 @@
 
 /* Big editorial title like screenshot */
 .about-title{
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   font-family: var(--serif);
   font-weight: 400;
-  text-transform: uppercase;
-  letter-spacing: -0.03em;
-  line-height: 0.86;
-  font-size: clamp(4.2rem, 7.2vw, 7rem);
+  font-size: clamp(2.8rem, 4.6vw, 4.5rem);
+  letter-spacing: 0em;
+  line-height: 0.95;
 }
 
 .about-kicker{
