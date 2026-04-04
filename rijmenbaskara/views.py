@@ -11,6 +11,7 @@ import json
 import re
 from datetime import datetime
 from typing import Optional
+from uuid import uuid4
 import zipfile
 import io
 
@@ -450,6 +451,21 @@ def add_work(request, gallery_id="default"):
     limit_reached = used_count >= WORKS_MAX_ITEMS
 
     if request.method == 'POST':
+        gallery_action = request.POST.get('gallery_action', '').strip()
+        item_id = request.POST.get('item_id', '').strip()
+
+        if gallery_action in {"move_up", "move_down", "delete"} and item_id:
+            if gallery_action == "delete":
+                _delete_gallery_item(gallery_id, item_id)
+                messages.success(request, "Gallery image removed.")
+            else:
+                moved = _move_gallery_item(gallery_id, item_id, "up" if gallery_action == "move_up" else "down")
+                if moved:
+                    messages.success(request, "Gallery order updated.")
+                else:
+                    messages.info(request, "That image is already at the edge of the gallery.")
+            return redirect('add_work', gallery_id=gallery_id)
+
         title = request.POST.get('title', '').strip()
         draft_title = title
         image_file = request.FILES.get('image')
@@ -485,6 +501,7 @@ def add_work(request, gallery_id="default"):
         "works_limit": WORKS_MAX_ITEMS,
         "limit_reached": limit_reached,
         "gallery_id": gallery_id,
+        "gallery_items": _load_gallery_items(gallery_id),
     }
     return render(request, 'add_work.html', context)
 
@@ -679,17 +696,37 @@ def _load_gallery_meta(gallery_id: str) -> dict:
         return {"items": []}
 
 
+def _normalize_gallery_items(items):
+    normalized = []
+    for idx, item in enumerate(items or []):
+        if not isinstance(item, dict):
+            continue
+        entry = item.copy()
+        try:
+            position = int(entry.get("position", idx))
+        except (TypeError, ValueError):
+            position = idx
+        entry["position"] = position
+        normalized.append(entry)
+
+    normalized.sort(key=lambda x: (x.get("position", 0), x.get("createdAt", "")))
+    for idx, item in enumerate(normalized):
+        item["position"] = idx
+    return normalized
+
+
 def _save_gallery_meta(gallery_id: str, data: dict):
     dir_path = _gallery_dir(gallery_id)
     dir_path.mkdir(parents=True, exist_ok=True)
     meta_path = _gallery_meta_path(gallery_id)
-    meta_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    payload = dict(data or {})
+    payload["items"] = _normalize_gallery_items(payload.get("items") or [])
+    meta_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def _load_gallery_items(gallery_id: str):
     meta = _load_gallery_meta(gallery_id)
-    items = meta.get("items") or []
-    return sorted(items, key=lambda x: x.get("createdAt", ""), reverse=True)
+    return _normalize_gallery_items(meta.get("items") or [])
 
 
 def _gallery_item_count(gallery_id: str) -> int:
@@ -699,12 +736,18 @@ def _gallery_item_count(gallery_id: str) -> int:
 def _save_gallery_item(gallery_id: str, title: str, image_file, thumb_file):
     dir_path = _gallery_dir(gallery_id)
     dir_path.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S%f")
     base_slug = _slugify(title) or "work"
+    gallery_slug = _slugify(gallery_id)
 
     def _store(file_obj, label):
-        fname = f"{timestamp}-{base_slug}-{label}{Path(file_obj.name).suffix.lower()}"
+        unique_suffix = uuid4().hex[:8]
+        fname = f"{timestamp}-{base_slug}-{label}-{unique_suffix}{Path(file_obj.name).suffix.lower()}"
         target = dir_path / fname
+        while target.exists():
+            unique_suffix = uuid4().hex[:8]
+            fname = f"{timestamp}-{base_slug}-{label}-{unique_suffix}{Path(file_obj.name).suffix.lower()}"
+            target = dir_path / fname
         with target.open('wb') as fh:
             for chunk in file_obj.chunks():
                 fh.write(chunk)
@@ -712,28 +755,50 @@ def _save_gallery_item(gallery_id: str, title: str, image_file, thumb_file):
 
     image_name = _store(image_file, "full")
     thumb_name = _store(thumb_file, "thumb")
-    item_id = f"{timestamp}-{base_slug}"
+    item_id = f"{timestamp}-{base_slug}-{uuid4().hex[:6]}"
+    existing_items = _load_gallery_items(gallery_id)
     item = {
         "id": item_id,
         "title": title,
-        "src": _media_url("galleries", _slugify(gallery_id), image_name),
-        "thumb": _media_url("galleries", _slugify(gallery_id), thumb_name),
+        "src": _media_url("galleries", gallery_slug, image_name),
+        "thumb": _media_url("galleries", gallery_slug, thumb_name),
         "createdAt": timestamp,
+        "position": len(existing_items),
         "tags": ["Quality:Upload", "Genre:Misc"],
     }
 
     meta = _load_gallery_meta(gallery_id)
-    items = meta.get("items") or []
+    items = _normalize_gallery_items(meta.get("items") or [])
     items.append(item)
     meta["items"] = items
     _save_gallery_meta(gallery_id, meta)
     return item
 
 
+def _move_gallery_item(gallery_id: str, item_id: str, direction: str):
+    meta = _load_gallery_meta(gallery_id)
+    items = _normalize_gallery_items(meta.get("items") or [])
+    index = next((idx for idx, item in enumerate(items) if str(item.get("id")) == str(item_id)), None)
+    if index is None:
+        return False
+
+    if direction == "up" and index > 0:
+        swap_index = index - 1
+    elif direction == "down" and index < len(items) - 1:
+        swap_index = index + 1
+    else:
+        return False
+
+    items[index], items[swap_index] = items[swap_index], items[index]
+    meta["items"] = items
+    _save_gallery_meta(gallery_id, meta)
+    return True
+
+
 def _delete_gallery_item(gallery_id: str, item_id: str):
     dir_path = _gallery_dir(gallery_id)
     meta = _load_gallery_meta(gallery_id)
-    items = meta.get("items") or []
+    items = _normalize_gallery_items(meta.get("items") or [])
     remaining = []
     deleted_paths = []
     for item in items:

@@ -48,6 +48,7 @@
               <h1 class="add-work__title">Add Work</h1>
               <p class="add-work__lede">Gallery ID: {{ gallery_id }}</p>
               <p class="add-work__lede">Upload a full image and a thumbnail. Both are required.</p>
+              <p class="add-work__lede">New uploads are appended after the current gallery order, and existing files stay untouched.</p>
             </section>
 
             {% if messages %}
@@ -67,6 +68,52 @@
             {% if errors.limit %}
               <div class="alert alert-error">{{ errors.limit|join:", " }}</div>
             {% endif %}
+
+            <section class="gallery-structure anim-up">
+              <div class="gallery-structure__header">
+                <div>
+                  <h2>Gallery Order</h2>
+                  <p>Move images up or down to restructure the gallery, or remove ones you no longer want.</p>
+                </div>
+              </div>
+              {% if gallery_items %}
+                <div class="gallery-structure__list">
+                  {% for item in gallery_items %}
+                    <article class="gallery-item-card">
+                      <div class="gallery-item-card__media">
+                        <img src="{{ item.thumb|default:item.src }}" alt="{{ item.title }}">
+                      </div>
+                      <div class="gallery-item-card__body">
+                        <div class="gallery-item-card__index">Position {{ forloop.counter }}</div>
+                        <h3>{{ item.title }}</h3>
+                        <div class="gallery-item-card__actions">
+                          <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="gallery_action" value="move_up">
+                            <input type="hidden" name="item_id" value="{{ item.id }}">
+                            <button type="submit" class="secondary-btn" {% if forloop.first %}disabled{% endif %}>Move Up</button>
+                          </form>
+                          <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="gallery_action" value="move_down">
+                            <input type="hidden" name="item_id" value="{{ item.id }}">
+                            <button type="submit" class="secondary-btn" {% if forloop.last %}disabled{% endif %}>Move Down</button>
+                          </form>
+                          <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="gallery_action" value="delete">
+                            <input type="hidden" name="item_id" value="{{ item.id }}">
+                            <button type="submit" class="secondary-btn secondary-btn--danger">Delete</button>
+                          </form>
+                        </div>
+                      </div>
+                    </article>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <p class="gallery-structure__empty">No images in this gallery yet. Your first upload will start the order.</p>
+              {% endif %}
+            </section>
 
             <form class="add-work__form anim-up" method="post" enctype="multipart/form-data">
               {% csrf_token %}
