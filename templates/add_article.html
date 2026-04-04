@@ -128,6 +128,16 @@
                       </label>
                     {% endfor %}
                   </div>
+                  <label class="custom-tags-field" for="customTags">
+                    <span>Add new tags</span>
+                    <input
+                      type="text"
+                      id="customTags"
+                      name="custom_tags"
+                      value="{{ draft_custom_tags|default_if_none:'' }}"
+                      placeholder="Example: Kill Team, Painting, Lore">
+                    <small>Separate multiple tags with commas.</small>
+                  </label>
                 </div>
               </div>
 

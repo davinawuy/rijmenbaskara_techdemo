@@ -138,6 +138,40 @@ TAG_CHOICES = [
     "40k", "30k", "Age of Sigmar"
 ]
 
+
+def _merge_tag_choices(*tag_groups):
+    seen = set()
+    merged = []
+    for group in tag_groups:
+        for tag in group or []:
+            normalized = str(tag).strip()
+            if not normalized:
+                continue
+            key = normalized.casefold()
+            if key in seen:
+                continue
+            seen.add(key)
+            merged.append(normalized)
+    return merged
+
+
+def _article_tag_choices(items=None, extra_tags=None):
+    items = items if items is not None else _load_articles()
+    discovered = []
+    for item in items:
+        discovered.extend(item.get("tags") or [])
+
+    preset_keys = {tag.casefold() for tag in TAG_CHOICES}
+    discovered_unique = _merge_tag_choices(discovered, extra_tags)
+    discovered_extras = [tag for tag in discovered_unique if tag.casefold() not in preset_keys]
+    discovered_extras.sort(key=str.casefold)
+    return _merge_tag_choices(TAG_CHOICES, discovered_extras, extra_tags)
+
+
+def _parse_article_tags(selected_tags, custom_tags_raw=""):
+    custom_tags = [tag.strip() for tag in custom_tags_raw.split(",")]
+    return _merge_tag_choices(selected_tags, custom_tags)
+
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".tif", ".tiff"}
 WORKS_MAX_ITEMS = 10
 PROJECTS_DIR = Path(settings.BASE_DIR) / "projects_store"
@@ -237,7 +271,7 @@ def articles(request):
         "ordered_years": ordered_years,
         "year_list": year_list,
         "active_tag": active_tag,
-        "tag_choices": TAG_CHOICES,
+        "tag_choices": _article_tag_choices(items),
         "articles_query": request.GET.get('q', ''),
     })
 
@@ -280,7 +314,7 @@ def article_detail(request, article_id):
     return render(request, 'article_detail.html', {
         "article": article,
         "related_posts": related_posts,
-        "tag_choices": TAG_CHOICES
+        "tag_choices": _article_tag_choices(all_articles, article.get("tags") or [])
     })
 
 def add_article(request):
@@ -459,26 +493,32 @@ def _article_form(request, article_id=None, is_edit=False):
     """
     File-backed composer: saves JSON + optional cover locally.
     """
-    context = {"is_edit": is_edit, "tag_choices": TAG_CHOICES}
+    all_articles = _load_articles()
+    context = {"is_edit": is_edit, "tag_choices": _article_tag_choices(all_articles)}
 
     existing = None
     if is_edit and article_id:
         existing = _load_article(article_id)
+        existing_tags = existing.get("tags", []) or []
+        preset_keys = {tag.casefold() for tag in TAG_CHOICES}
+        custom_existing_tags = [tag for tag in existing_tags if tag.casefold() not in preset_keys]
         context.update({
             'draft_title': existing.get("title", ""),
             'draft_subtitle': existing.get("subtitle", ""),
             'draft_body': existing.get("body_html", ""),
-            'draft_tags': existing.get("tags", []) or [],
+            'draft_tags': existing_tags,
+            'draft_custom_tags': ", ".join(custom_existing_tags),
             'article_id': existing.get("id", article_id),
             'existing_cover': existing.get("cover"),
+            'tag_choices': _article_tag_choices(all_articles, existing_tags),
         })
 
     if request.method == 'POST':
         title = request.POST.get('title', '').strip()
         subtitle = request.POST.get('subtitle', '').strip()
         body_html = request.POST.get('body_html', '').strip()
-        tags_raw = request.POST.get('tags', '')
-        tags = request.POST.getlist('tags')
+        custom_tags_raw = request.POST.get('custom_tags', '').strip()
+        tags = _parse_article_tags(request.POST.getlist('tags'), custom_tags_raw)
         posted_id = request.POST.get('article_id')
         if posted_id:
             article_id = posted_id
@@ -488,7 +528,9 @@ def _article_form(request, article_id=None, is_edit=False):
             'draft_subtitle': subtitle,
             'draft_body': body_html,
             'draft_tags': tags,
+            'draft_custom_tags': custom_tags_raw,
             'article_id': article_id,
+            'tag_choices': _article_tag_choices(all_articles, tags),
         })
 
         if not (title and body_html):
