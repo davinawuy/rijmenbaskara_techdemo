@@ -646,7 +646,7 @@
   align-items: center;
   grid-template-columns: 110px 1fr;
   gap: 24px;
-  padding: 18px 24px;
+  padding: 24px 24px;
   transition: background 0.2s ease, transform 0.2s ease;
 }
 
