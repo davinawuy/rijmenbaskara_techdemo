@@ -369,6 +369,10 @@
   border: 1px solid var(--rule);
 }
 
+.delete-btn {
+  background-color: rgb(180, 0, 0);
+}
+
 .article-detail{
   padding-top: 12px;
 }

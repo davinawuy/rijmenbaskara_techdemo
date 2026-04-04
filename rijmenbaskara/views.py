@@ -14,6 +14,7 @@ from typing import Optional
 from uuid import uuid4
 import zipfile
 import io
+import os
 
 # File-based article storage (local file management)
 ARTICLES_DIR = Path(settings.BASE_DIR) / "articles_store"
@@ -335,6 +336,28 @@ def manage_articles(request):
         return redirect('articles')
     items = _load_articles()
     return render(request, 'manage_articles.html', {"articles": items})
+
+
+def delete_article(request, article_id):
+    if request.method == 'POST':
+        try:
+            article_data = _load_article(article_id)
+            
+            if article_data and article_data.get('cover'):
+                cover_filename = Path(article_data['cover']).name
+                cover_file_path = ARTICLES_COVERS_DIR / cover_filename
+                if cover_file_path.exists():
+                    os.remove(cover_file_path)
+
+            json_path = _article_path(article_id)
+            if json_path.exists():
+                os.remove(json_path)
+                return JsonResponse({'success': True})
+            
+            return JsonResponse({'success': False, 'error': 'File not found'}, status=404)
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
 def toggle_featured(request, article_id):

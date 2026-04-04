@@ -75,7 +75,7 @@
               </div>
 
               {% if articles %}
-                <div class="saved-list__grid">
+                <div id="articles-container" class="saved-list__grid">
                   {% for item in articles %}
                     <article class="saved-card">
                       <div class="saved-card__meta">
@@ -101,6 +101,8 @@
                                 data-featured="{{ item.featured|default:False }}">
                           {% if item.featured %}⭐ Featured{% else %}☆ Feature{% endif %}
                         </button>
+                        <button class="cta-btn cta-btn--ghost delete-btn"
+                                data-article-id="{{ item.id }}">Delete</button>
                       </div>
                     </article>
                   {% endfor %}
@@ -196,6 +198,55 @@
         }
       });
     });
+  </script>
+  <script>
+    // Delete an article
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        const articleId = this.dataset.articleId;
+
+        if (!confirm(`Delete article ${articleId}?`)) {
+          return;
+        }
+
+        try {
+          const response = await fetch(`/articles/${articleId}/delete/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}',
+            }
+          });
+    
+          const result = await response.json();
+          if (result.success) {
+            const container = document.getElementById('articles-container');
+
+            // update card view
+            const card = this.closest('.saved-card');
+            card.style.transition = 'all 0.2s ease';
+            card.style.opacity = '0';
+            
+            setTimeout(() => {
+              card.remove();
+
+              const remainingCards = container.querySelectorAll('.saved-card');
+
+              if (remainingCards.length === 0) {
+                container.innerHTML = `
+                <p class="coming-soon">
+                    No saved articles yet. Create one to populate this list.
+                </p>
+                `;
+
+                container.classList.remove('saved-list__grid');
+              }
+            }, 300);
+          }
+        } catch (err) {
+          alert(`Failed to delete article ${articleId}: ` + err);
+        }
+      })
+    })
   </script>
 </body>
 </html>
