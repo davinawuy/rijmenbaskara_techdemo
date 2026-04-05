@@ -179,7 +179,7 @@
 
 .pill--ghost{
   background: rgba(11,11,11,.05);
-  color: var(--ink);
+  color: black;
   border-color: transparent;
 }
 
