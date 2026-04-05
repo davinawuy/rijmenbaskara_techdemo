@@ -334,7 +334,6 @@
 .editor-body{
   min-height: 320px;
   font-family: var(--sans);
-  font-weight: 500;
   font-size: 18px;
   line-height: 1.7;
   color: var(--ink);
@@ -364,6 +363,12 @@
 
 .editor-body p{
   margin: 0 0 12px;
+  font-weight: 200;
+}
+
+.editor-body b, 
+.editor-body strong {
+  font-weight: 1000 !important;
 }
 
 .editor-body blockquote{

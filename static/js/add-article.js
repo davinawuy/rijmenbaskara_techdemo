@@ -25,57 +25,80 @@
     }
   });
 
+  // initialize with <p> to editor
+  if (editor && editor.innerHTML.trim() === "") {
+    editor.innerHTML = '<p><br></p>';
+  }
+
   // Basic toolbar actions
   if (toolbar) {
+    toolbar.addEventListener('mousedown', (evt) => {
+      evt.preventDefault();
+    })
+
     toolbar.addEventListener('click', (evt) => {
       const btn = evt.target.closest('button[data-command]');
       if (!btn) return;
 
       const [command, value] = btn.dataset.command.split(':');
+
       if (command === 'createLink') {
         const url = prompt('Enter URL');
         if (url) document.execCommand('createLink', false, url);
-        return;
-      }
-
-      if (command === 'formatBlock') {
-        document.execCommand('formatBlock', false, value || 'p');
       } else {
         document.execCommand(command, false, value || null);
       }
 
-      // visual active state (lightweight)
-      btn.classList.add('is-active');
-      setTimeout(() => btn.classList.remove('is-active'), 160);
+      editor.focus();
     });
   }
 
   // Markdown-ish quick shortcuts (#, ##, > + space)
   editor.addEventListener('keydown', (evt) => {
-    if (evt.key !== ' ') return;
+    const selection = window.getSelection();
+    const range = selection.getRangeAt(0);
 
-    const sel = window.getSelection();
-    if (!sel || !sel.anchorNode) return;
+    let block = range.startContainer;
+    if (block.nodeType === 3) block = block.parentNode;
+    block = block.closest('p, h1, h2, blockquote, li');
 
-    const anchor = sel.anchorNode;
-    const textNode = anchor.nodeType === 3 ? anchor : anchor.firstChild;
-    if (!textNode) return;
+    if (evt.key === 'Enter') {
+      if (block && (block.tagName === 'BLOCKQUOTE' || block.tagName.startsWith('H')) && block.textContent.trim() === "") {
+        evt.preventDefault();
+        
+        const newP = document.createElement('p');
+        newP.innerHTML = '<br>';
+        
+        block.parentNode.insertBefore(newP, block.nextSibling);
+        block.remove();
 
-    const raw = (textNode.textContent || '').trim();
-
-    if (raw === '##') {
-      evt.preventDefault();
-      textNode.textContent = '';
-      document.execCommand('formatBlock', false, 'h2');
-    } else if (raw === '#') {
-      evt.preventDefault();
-      textNode.textContent = '';
-      document.execCommand('formatBlock', false, 'h1');
-    } else if (raw === '>') {
-      evt.preventDefault();
-      textNode.textContent = '';
-      document.execCommand('formatBlock', false, 'blockquote');
+        const newRange = document.createRange();
+        newRange.setStart(newP, 0);
+        newRange.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+        return;
+      }
     }
+
+    if (evt.key === ' ') {
+      const text = block ? block.textContent : "";
+      
+      let targetBlock = null;
+      if (text === '#') targetBlock = 'h1';
+      else if (text === '##') targetBlock = 'h2';
+      else if (text === '>') targetBlock = 'blockquote';
+
+      if (targetBlock) {
+        evt.preventDefault();
+        block.textContent = "";
+        document.execCommand('formatBlock', false, targetBlock);
+      }
+    }
+  });
+
+  editor.addEventListener('input', () => {
+    document.getElementById('bodyInput').value = editor.innerHTML;
   });
 
   // Cover preview
