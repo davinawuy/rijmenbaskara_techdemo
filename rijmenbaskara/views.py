@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import FileResponse, HttpResponse, Http404, JsonResponse
 from django.contrib import messages
 from django.core.mail import send_mail
+from django.core.mail import EmailMessage
 from django.conf import settings
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
@@ -181,23 +182,26 @@ PROJECTS_DIR.mkdir(exist_ok=True)
 
 def contact(request):
     if request.method == 'POST':
-        email = request.POST.get('email', '')
-        message = request.POST.get('message', '')
+        email = request.POST.get('email')
+        message = request.POST.get('message')
         
         if email and message:
             # Compose the email
-            subject = f'New Contact Form Message from {email}'
+            subject = f'rijmenbaskara.com from {email}'
             full_message = f'From: {email}\n\nMessage:\n{message}'
+            sender_email = settings.DEFAULT_FROM_EMAIL
+            receiver_email = ['fadhillah.ilham71@gmail.com']
             
             try:
                 # Send email
-                send_mail(
-                    subject,
-                    full_message,
-                    email,  # From email
-                    ['rijmenbaskara@gmail.com'],  # To email
-                    fail_silently=False,
+                email_obj = EmailMessage(
+                    subject=subject,
+                    body=full_message,
+                    from_email=sender_email,
+                    to=receiver_email,
+                    reply_to=[email],
                 )
+                email_obj.send(fail_silently=False)
                 messages.success(request, 'Your message has been sent successfully!')
             except Exception as e:
                 messages.error(request, f'Failed to send message. Please try again later.')

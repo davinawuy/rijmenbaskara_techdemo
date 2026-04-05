@@ -93,7 +93,7 @@
                 <div class="related-articles">
                   {% for post in related_posts %}
                   <article class="related-item">
-                    <a href="{% url 'article_detail' post.slug|default:post.id %}" class="related-link">
+                    <a href="{% url 'article_detail' post.id|default:post.slug %}" class="related-link">
                       <h4 class="related-title">{{ post.title }}</h4>
                       <div class="related-meta">
                         <span class="related-date">{{ post.created_at|format_article_date }}</span>
