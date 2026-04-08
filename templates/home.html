@@ -174,25 +174,26 @@
                       </div>
                       {% endif %}
                       <div class="article-content">
-                        <div class="article-header">
-                          <div>
-                            <h3 class="article-title">{{ article.title }}</h3>
-                          </div>
-                          {% if article.tags %}
-                            <div>
-                              {% for tag in article.tags %}
-                                <span class="tag-pill">{{ tag }}</span>
-                              {% endfor %}
-                            </div>
-                          {% endif %}
+                        <h3 class="article-title">{{ article.title }}</h3>
+
+                        {% if article.tags %}
+                        <div class="article-tag-container">
+                          {% for tag in article.tags %}
+                            <span class="tag-pill">{{ tag }}</span>
+                          {% endfor %}
                         </div>
+                        {% endif %}
+
                         {% if article.subtitle %}
                         <p class="article-excerpt">
                           {{ article.subtitle }}
                         </p>
                         {% endif %}
+
                         <div class="article-meta">
-                          <span class="article-date">{{ article.created_at|slice:"6:8" }}/{{ article.created_at|slice:"4:6" }}/{{ article.created_at|slice:":4" }}</span>
+                          <span class="article-date">
+                            {{ article.created_at|slice:"6:8" }}/{{ article.created_at|slice:"4:6" }}/{{ article.created_at|slice:":4" }}
+                          </span>
                         </div>
                       </div>
                     </a>
