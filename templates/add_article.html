@@ -118,9 +118,9 @@
                   value="{{ draft_subtitle|default_if_none:'' }}"
                   autocomplete="off">
 
-                <div class="tags-chooser">
+                {% comment %} <div class="tags-chooser">
                   <div class="tags-chooser__label">Tags</div>
-                  <div class="tags-chooser__grid">
+                  <div class="tags-chooser__grid"> 
                     {% for tag in tag_choices %}
                       <label class="tag-toggle">
                         <input type="checkbox" name="tags" value="{{ tag }}" {% if draft_tags and tag in draft_tags %}checked{% endif %}>
@@ -138,6 +138,44 @@
                       placeholder="Example: Kill Team, Painting, Lore">
                     <small>Separate multiple tags with commas.</small>
                   </label>
+                </div>
+              </div> {% endcomment %}
+
+              <div class="tags-manager">
+                <div class="tags-manager__label">Tags</div>
+
+                <div id="chosenTagsContainer" class="chosen-tags-area">
+                  </div>
+
+                <div class="tag-controls">
+                  <button type="button" class="tag-btn" id="toggleExisting">Add Existing Tags</button>
+                  <button type="button" class="tag-btn" id="toggleNew">Add New Tags</button>
+                </div>
+
+                <div id="tagPanelContainer" class="tag-panel-container" style="display: none;">
+                  
+                  <div id="panelExisting" class="tag-panel">
+                    <input type="text" id="tagSearch" placeholder="Search existing tags..." class="tag-search-input">
+                    <div class="tags-chooser__grid">
+                      {% for tag in tag_choices %}
+                        <label class="tag-toggle-item">
+                          <input type="checkbox" name="tags" value="{{ tag }}" 
+                                {% if draft_tags and tag in draft_tags %}checked{% endif %}>
+                          <span>{{ tag }}</span>
+                        </label>
+                      {% endfor %}
+                    </div>
+                  </div>
+
+                  <div id="panelNew" class="tag-panel" style="display: none;">
+                    <label class="custom-tags-field">
+                      <span>New Tags</span>
+                      <input type="text" id="customTagsInput" name="custom_tags" 
+                            value="{{ draft_custom_tags|default_if_none:'' }}"
+                            placeholder="Example: Kill Team, Painting, Lore">
+                      <small>Separate multiple tags with commas.</small>
+                    </label>
+                  </div>
                 </div>
               </div>
 

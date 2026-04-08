@@ -10,6 +10,14 @@
   const removeCover = document.getElementById('removeCover');
   const insertImageBtn = document.getElementById('insertImageBtn');
   const inlineImageInput = document.getElementById('inlineImageInput');
+  const container = document.getElementById('tagPanelContainer');
+  const panelExisting = document.getElementById('panelExisting');
+  const panelNew = document.getElementById('panelNew');
+  const btnExisting = document.getElementById('toggleExisting');
+  const btnNew = document.getElementById('toggleNew');
+  const chosenArea = document.getElementById('chosenTagsContainer');
+  const searchInput = document.getElementById('tagSearch');
+  const customInput = document.getElementById('customTagsInput');
 
   if (!form || !editor) return;
 
@@ -196,4 +204,73 @@
       inlineImageInput.value = '';
     });
   }
+
+  // Tags
+  function togglePanel(target) {
+        const isCurrentlyOpen = container.style.display !== 'none';
+        const isSamePanel = (target === 'existing' && panelExisting.style.display !== 'none') ||
+                            (target === 'new' && panelNew.style.display !== 'none');
+
+        if (isCurrentlyOpen && isSamePanel) {
+            container.style.display = 'none';
+            btnExisting.classList.remove('is-active');
+            btnNew.classList.remove('is-active');
+        } else {
+            container.style.display = 'block';
+            if (target === 'existing') {
+                panelExisting.style.display = 'block';
+                panelNew.style.display = 'none';
+                btnExisting.classList.add('is-active');
+                btnNew.classList.remove('is-active');
+            } else {
+                panelExisting.style.display = 'none';
+                panelNew.style.display = 'block';
+                btnExisting.classList.remove('is-active');
+                btnNew.classList.add('is-active');
+            }
+        }
+    }
+
+    btnExisting.addEventListener('click', () => togglePanel('existing'));
+    btnNew.addEventListener('click', () => togglePanel('new'));
+
+    function updateChosenTags() {
+        chosenArea.innerHTML = '';
+        
+        document.querySelectorAll('input[name="tags"]:checked').forEach(cb => {
+            createTagCard(cb.value, () => { cb.checked = false; updateChosenTags(); });
+        });
+
+        const customTags = customInput.value.split(',').map(t => t.trim()).filter(t => t !== "");
+        customTags.forEach(tag => {
+            createTagCard(tag, () => {
+                const updated = customTags.filter(t => t !== tag);
+                customInput.value = updated.join(', ');
+                updateChosenTags();
+            });
+        });
+    }
+
+    function createTagCard(text, onRemove) {
+        const card = document.createElement('div');
+        card.className = 'tag-card';
+        card.innerHTML = `<span>${text}</span><button type="button">×</button>`;
+        card.querySelector('button').onclick = onRemove;
+        chosenArea.appendChild(card);
+    }
+
+    searchInput.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        document.querySelectorAll('.tag-toggle-item').forEach(item => {
+            const text = item.textContent.toLowerCase();
+            item.style.display = text.includes(term) ? 'flex' : 'none';
+        });
+    });
+
+    document.addEventListener('change', (e) => {
+        if (e.target.name === 'tags') updateChosenTags();
+    });
+    customInput.addEventListener('input', updateChosenTags);
+
+    updateChosenTags();
 })();

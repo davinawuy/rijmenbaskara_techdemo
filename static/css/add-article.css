@@ -214,23 +214,14 @@
   color: var(--muted);
 }
 
-.tags-chooser{
-  margin-top: 8px;
-}
-.tags-chooser__label{
-  font-family: var(--sans);
-  font-weight: 600;
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 6px;
-}
 .tags-chooser__grid{
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-items: flex-start;
+  width: 100%;
 }
+
 .custom-tags-field{
   display: flex;
   flex-direction: column;
@@ -239,6 +230,7 @@
   max-width: 520px;
   font-family: var(--sans);
 }
+
 .custom-tags-field span{
   font-weight: 600;
   font-size: 12px;
@@ -246,6 +238,7 @@
   text-transform: uppercase;
   color: var(--muted);
 }
+
 .custom-tags-field input{
   width: 100%;
   border: 1px solid var(--rule);
@@ -257,37 +250,157 @@
   font-size: 14px;
   transition: border-color 0.2s ease, background-color 0.2s ease;
 }
+
 .custom-tags-field input:focus{
   border-color: rgba(11,11,11,.4);
   background: transparent;
 }
+
 .custom-tags-field small{
   font-weight: 500;
   font-size: 12px;
   color: var(--muted);
 }
-.tag-toggle{
+
+.tags-manager {
+  margin-top: 24px;
+}
+
+.tags-manager__label {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.chosen-tags-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+  min-height: 32px;
+}
+
+.tag-card {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.tag-card button {
+  background: none;
+  border: none;
+  color: var(--bg);
+  opacity: 0.6;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  transition: opacity 0.2s ease;
+}
+
+.tag-card button:hover {
+  opacity: 1;
+}
+
+.tag-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tag-btn {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: transparent;
+  border: 1px dashed var(--rule);
+  color: var(--muted);
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tag-btn:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.tag-btn.is-active {
+  border-style: solid;
+  border-color: var(--ink);
+  background: rgba(11,11,11,.05);
+  color: var(--ink);
+}
+
+.tag-panel-container {
+  background: rgba(11,11,11,.02);
+  border: 1px solid var(--rule);
+  padding: 20px;
+  border-radius: 4px;
+  margin-top: 8px;
+}
+
+.tag-search-input {
+  width: 100%;
+  border: 1px solid var(--rule);
+  background: var(--bg);
+  color: var(--ink);
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  font-family: var(--sans);
+  font-size: 13px;
+  outline: none;
+}
+
+.tag-toggle-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
   border: 1px solid var(--rule);
   border-radius: 999px;
   cursor: pointer;
   font-family: var(--sans);
   font-weight: 600;
-  font-size: 12px;
+  font-size: 11px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  transition: all 0.2s ease;
 }
-.tag-toggle input{
-  display: none;
-}
-.tag-toggle input:checked + span{
-  color: var(--bg);
+
+.tag-toggle-item input { display: none; }
+
+.tag-toggle-item:has(input:checked) {
   background: var(--ink);
-  padding: 4px 8px;
-  border-radius: 999px;
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
+.custom-tags-field input {
+  width: 100%;
+  border: 1px solid var(--rule);
+  background: var(--bg);
+  color: var(--ink);
+  padding: 12px 14px;
+  outline: none;
+  font: inherit;
+  font-size: 14px;
 }
 
 .toolbar{
