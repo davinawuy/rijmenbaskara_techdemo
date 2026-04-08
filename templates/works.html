@@ -126,7 +126,7 @@
               </div>
               {% empty %}
               <div class="no-projects">
-                <p>No projects yet. {% if is_admin %}<a href="{% url 'add_project' %}">Add your first project!</a>{% endif %}</p>
+                <p>No projects yet. {% if is_admin %}<a id="empty-works" href="{% url 'add_project' %}">Add your first project!</a>{% endif %}</p>
               </div>
               {% endfor %}
 

@@ -61,6 +61,11 @@ html {
   border-color: var(--ink);
 }
 
+#empty-works {
+  color: var(--ink);
+  font-weight: 600;
+}
+
 /* Search and Filter Section */
 .search-filter-section{
   display: flex;
