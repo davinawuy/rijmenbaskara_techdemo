@@ -190,7 +190,7 @@ def contact(request):
             subject = f'rijmenbaskara.com from {email}'
             full_message = f'From: {email}\n\nMessage:\n{message}'
             sender_email = settings.DEFAULT_FROM_EMAIL
-            receiver_email = ['fadhillah.ilham71@gmail.com']
+            receiver_email = os.getenv('EMAIL_HOST_USER')
             
             try:
                 # Send email
@@ -198,7 +198,7 @@ def contact(request):
                     subject=subject,
                     body=full_message,
                     from_email=sender_email,
-                    to=receiver_email,
+                    to=[receiver_email],
                     reply_to=[email],
                 )
                 email_obj.send(fail_silently=False)
@@ -253,9 +253,12 @@ def works(request):
     })
 
 def articles(request):
-    items = _load_articles()
+    all_articles = _load_articles() # Keep a master list
+    items = all_articles
+
     active_tag = request.GET.get('tag', '').strip()
     query = request.GET.get('q', '').strip().lower()
+
     if active_tag:
         items = [a for a in items if active_tag in (a.get("tags") or [])]
     if query:
@@ -270,6 +273,7 @@ def articles(request):
     for art in items:
         year = (art.get("created_at") or "")[:4] or "Unknown"
         year_groups.setdefault(year, []).append(art)
+
     ordered_years = sorted(year_groups.keys(), reverse=True)
     year_list = [(year, year_groups[year]) for year in ordered_years]
     return render(request, 'articles.html', {
@@ -277,7 +281,7 @@ def articles(request):
         "ordered_years": ordered_years,
         "year_list": year_list,
         "active_tag": active_tag,
-        "tag_choices": _article_tag_choices(items),
+        "tag_choices": _article_tag_choices(all_articles),
         "articles_query": request.GET.get('q', ''),
     })
 
