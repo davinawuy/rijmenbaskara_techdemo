@@ -65,9 +65,14 @@
 
 .current-image-item{
   position: relative;
-  border: 2px solid var(--rule);
   border-radius: 4px;
   overflow: hidden;
+  border: 1px solid #eee;
+  transition: transform 0.2s ease;
+}
+
+.current-image-item:active {
+  cursor: grabbing;
 }
 
 .current-image-item img{

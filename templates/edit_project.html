@@ -42,7 +42,7 @@
           
           {% if messages %}
             {% for message in messages %}
-              <div style="padding: 12px; margin-bottom: 20px; border-radius: 4px; background: {% if message.tags == 'error' %}#fee;{% else %}#efe;{% endif %}">
+              <div style="color: var(--bg); padding: 12px; margin-bottom: 20px; border-radius: 4px; background: {% if message.tags == 'error' %}#fee;{% else %}#efe;{% endif %}">
                 {{ message }}
               </div>
             {% endfor %}
@@ -74,30 +74,32 @@
 
             <div class="form-group">
               <div class="current-images">
-                <h3>Current Images ({{ project.images|length }})</h3>
-                <div class="current-images-grid">
-                  {% for image_url in project.image_urls %}
-                  <div class="current-image-item">
-                    <img src="{{ image_url }}" alt="Current project image {{ forloop.counter }}">
-                  </div>
+                <h3>Current Images ({{ project.images|length }}) <small style="font-weight: normal; opacity: 0.6;">(Drag to reorder)</small></h3>
+                
+                <div class="current-images-grid" id="sortable-grid">
+                  {% for img_path in project.images %}
+                  <div class="current-image-item" style="cursor: grab;">
+                    <input type="hidden" name="ordered_filenames" value="{{ img_path }}">
+                    
+                    <img src="/media/{{ img_path }}" alt="Project image">
+                    
+                    </div>
                   {% endfor %}
                 </div>
+
                 <div class="checkbox-group">
                   <label>
                     <input type="checkbox" name="keep_existing" value="true" checked>
-                    Keep existing images
+                    Keep existing images <small style="font-weight: normal; opacity: 0.6;"> (Uncheck to delete all and start fresh) </small>
                   </label>
                 </div>
               </div>
-              
+
               <label>Add New Images (Optional)</label>
               <div class="file-upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
                 <div class="upload-icon">📁</div>
                 <div class="upload-text">Click to select images or drag and drop</div>
-                <div class="upload-hint">Accepted: JPG, JPEG, PNG, GIF, WebP</div>
-                <input type="file" id="fileInput" name="new_images" 
-                       accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" 
-                       multiple>
+                <input type="file" id="fileInput" name="new_images" multiple>
               </div>
               <div id="preview" class="preview-grid"></div>
             </div>
@@ -113,11 +115,18 @@
   </div>
 
   <script src="{% static 'js/theme-toggle.js' %}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <script>
     const fileInput = document.getElementById('fileInput');
     const uploadArea = document.getElementById('uploadArea');
     const preview = document.getElementById('preview');
+    const el = document.getElementById('sortable-grid');
     let selectedFiles = [];
+
+    new Sortable(el, {
+      animation: 150,
+      ghostClass: 'sortable-ghost'
+    });
 
     fileInput.addEventListener('change', function(e) {
       handleFiles(e.target.files);

@@ -1035,11 +1035,12 @@ def edit_project(request, project_id):
     project = _with_project_image_urls(_load_project(project_id))
     
     if request.method == 'POST':
+        ordered_filenames = request.POST.getlist('ordered_filenames')
         title = request.POST.get('title', '').strip()
         description = request.POST.get('description', '').strip()
         category = request.POST.get('category', '').strip()
         uploaded_images = request.FILES.getlist('new_images')
-        keep_existing = request.POST.get('keep_existing', 'true') == 'true'
+        keep_existing = 'keep_existing' in request.POST
         
         errors = {}
         if not title:
@@ -1072,9 +1073,9 @@ def edit_project(request, project_id):
                         p['description'] = description
                         p['category'] = category
                         # Keep existing images if checkbox is checked, otherwise replace with new ones
-                        if keep_existing and new_filenames:
-                            p['images'] = p.get('images', []) + new_filenames
-                        elif new_filenames:
+                        if keep_existing:
+                            p['images'] = ordered_filenames + new_filenames
+                        else:
                             p['images'] = new_filenames
                         # If keeping existing and no new uploads, keep current images
                         break
