@@ -524,6 +524,9 @@
   display: block;
   text-decoration: none;
   transition: opacity 0.2s ease;
+  overflow: hidden;
+  width: 100%;
+  word-wrap: break-word;
 }
 
 .related-link:hover{
@@ -570,6 +573,8 @@
   color: var(--bg);
   background: var(--ink);
   border-radius: 0;
+  overflow: hidden;
+  word-wrap: break-word;
 }
 
 /* Tags Cloud */
@@ -591,6 +596,8 @@
   text-decoration: none;
   color: var(--ink);
   transition: all 0.2s ease;
+  overflow: hidden;
+  word-wrap: break-word;
 }
 
 .cloud-tag:hover{

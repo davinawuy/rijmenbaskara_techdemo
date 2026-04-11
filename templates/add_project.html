@@ -42,7 +42,7 @@
           
           {% if messages %}
             {% for message in messages %}
-              <div style="color: black; padding: 12px; margin-bottom: 20px; border-radius: 4px; background: {% if message.tags == 'error' %}#fee;{% else %}#efe;{% endif %}">
+              <div style="color: black; padding: 12px; margin-bottom: 20px; border-radius: 4px; background: {% if message.categories == 'error' %}#fee;{% else %}#efe;{% endif %}">
                 {{ message }}
               </div>
             {% endfor %}
@@ -59,6 +59,46 @@
             <div class="form-group">
               <label for="description">Description</label>
               <textarea id="description" name="description" placeholder="A stunning collection of Imperial Titans..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <div class="categories-manager">
+                  <label for="category">Categories*</label>
+
+                  <div id="chosenCategoriesContainer" class="chosen-categories-area">
+                    </div>
+
+                  <div class="category-controls">
+                    <button type="button" class="category-btn" id="toggleExisting">Add Existing Categories</button>
+                    <button type="button" class="category-btn" id="toggleNew">Add New Categories</button>
+                  </div>
+
+                  <div id="categoryPanelContainer" class="category-panel-container" style="display: none;">
+                    
+                    <div id="panelExisting" class="category-panel">
+                      <input type="text" id="categorySearch" placeholder="Search existing categories..." class="category-search-input">
+                      <div class="categories-chooser__grid">
+                        {% for category in category_choices %}
+                          <label class="category-toggle-item">
+                            <input type="checkbox" name="categories" value="{{ category }}" 
+                                  {% if draft_categories and category in draft_categories %}checked{% endif %}>
+                            <span>{{ category }}</span>
+                          </label>
+                        {% endfor %}
+                      </div>
+                    </div>
+
+                    <div id="panelNew" class="category-panel" style="display: none;">
+                      <label class="custom-categories-field">
+                        <span>New categories</span>
+                        <input type="text" id="customCategoriesInput" name="custom_categories" 
+                              value="{{ draft_custom_categories|default_if_none:'' }}"
+                              placeholder="Example: Kill Team, Painting, Lore">
+                        <small>Separate multiple categories with commas.</small>
+                      </label>
+                    </div>
+                  </div>
+              </div>
             </div>
 
             <div class="form-group">
@@ -95,6 +135,7 @@
   </div>
 
   <script src="{% static 'js/theme-toggle.js' %}"></script>
+  <script src="{% static 'js/add-project.js' %}"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <script>
     const fileInput = document.getElementById('fileInput');

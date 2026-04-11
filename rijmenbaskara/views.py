@@ -84,20 +84,22 @@ def _load_article(article_id: str):
     return data
 
 
+def _project_path(project_id: str) -> Path:
+    return PROJECTS_DIR / f"{project_id}.json"
+
+
 def _load_projects():
-    """Load all projects from projects_store directory"""
-    projects_file = PROJECTS_DIR / "seed_projects.json"
-    if projects_file.exists():
+    items = []
+    for path in PROJECTS_DIR.glob("*.json"):
         try:
-            data = json.loads(projects_file.read_text(encoding="utf-8"))
-            return sorted(data, key=lambda x: x.get("created_at", ""), reverse=True)
+            data = json.loads(path.read_text(encoding="utf-8"))
         except Exception:
-            pass
-    return []
+            continue
+    
+    return sorted(items, key=lambda x: x.get("created_at", ""), reverse=True)
 
 
 def _load_project(project_id: str):
-    """Load a single project by ID"""
     projects = _load_projects()
     for project in projects:
         if project.get("id") == project_id:
@@ -136,12 +138,7 @@ def _ensure_staff(request):
         return False
     return True
 
-# Preset tags
-TAG_CHOICES = [
-    "40k", "30k", "Age of Sigmar"
-]
-
-
+# Tags management
 def _merge_tag_choices(*tag_groups):
     seen = set()
     merged = []
@@ -164,11 +161,9 @@ def _article_tag_choices(items=None, extra_tags=None):
     for item in items:
         discovered.extend(item.get("tags") or [])
 
-    preset_keys = {tag.casefold() for tag in TAG_CHOICES}
     discovered_unique = _merge_tag_choices(discovered, extra_tags)
-    discovered_extras = [tag for tag in discovered_unique if tag.casefold() not in preset_keys]
-    discovered_extras.sort(key=str.casefold)
-    return _merge_tag_choices(TAG_CHOICES, discovered_extras, extra_tags)
+    discovered_unique.sort(key=str.casefold)
+    return _merge_tag_choices(discovered_unique, extra_tags)
 
 
 def _parse_article_tags(selected_tags, custom_tags_raw=""):
@@ -548,14 +543,12 @@ def _article_form(request, article_id=None, is_edit=False):
     if is_edit and article_id:
         existing = _load_article(article_id)
         existing_tags = existing.get("tags", []) or []
-        preset_keys = {tag.casefold() for tag in TAG_CHOICES}
-        custom_existing_tags = [tag for tag in existing_tags if tag.casefold() not in preset_keys]
         context.update({
             'draft_title': existing.get("title", ""),
             'draft_subtitle': existing.get("subtitle", ""),
             'draft_body': existing.get("body_html", ""),
             'draft_tags': existing_tags,
-            'draft_custom_tags': ", ".join(custom_existing_tags),
+            'draft_custom_tags': ", ".join(existing_tags),
             'article_id': existing.get("id", article_id),
             'existing_cover': existing.get("cover"),
             'tag_choices': _article_tag_choices(all_articles, existing_tags),
@@ -963,7 +956,17 @@ def api_gallery_item_detail(request, gallery_id, item_id):
     _delete_gallery_item(gallery_id, item_id)
     return JsonResponse({"success": True})
 
+# Categories management, partially uses Article management
+def _project_category_choices(items=None, extra_categories=None):
+    items = items if items is not None else _load_projects()
+    discovered = []
+    for item in items:
+        discovered.extend(item.get("categories") or [])
 
+    discovered_unique = _merge_tag_choices(discovered, extra_categories)
+    discovered_unique.sort(key=str.casefold)
+    return _merge_tag_choices(discovered_unique, extra_categories)
+    
 # Project management views
 def add_project(request):
     """Add a new project"""
@@ -1138,3 +1141,8 @@ def serve_media(request, path):
 
     return FileResponse(candidate.open("rb"))
 
+def _project_form(request, project_id=None, is_edit=False):
+    """
+    File-backed composer: saves JSON + optional cover locally.
+    """
+    all_projects = _load_projects()

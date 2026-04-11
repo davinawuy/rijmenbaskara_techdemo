@@ -238,7 +238,9 @@
         chosenArea.innerHTML = '';
         
         document.querySelectorAll('input[name="tags"]:checked').forEach(cb => {
-            createTagCard(cb.value, () => { cb.checked = false; updateChosenTags(); });
+            createTagCard(cb.value, () => { 
+              cb.checked = false; 
+              updateChosenTags(); });
         });
 
         const customTags = customInput.value.split(',').map(t => t.trim()).filter(t => t !== "");
@@ -260,15 +262,15 @@
     }
 
     searchInput.addEventListener('input', (e) => {
-        const term = e.target.value.toLowerCase();
-        document.querySelectorAll('.tag-toggle-item').forEach(item => {
-            const text = item.textContent.toLowerCase();
-            item.style.display = text.includes(term) ? 'flex' : 'none';
-        });
+      const term = e.target.value.toLowerCase();
+      document.querySelectorAll('.tag-toggle-item').forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(term) ? 'flex' : 'none';
+      });
     });
-
+    
     document.addEventListener('change', (e) => {
-        if (e.target.name === 'tags') updateChosenTags();
+      if (e.target.name === 'tags') updateChosenTags();
     });
     customInput.addEventListener('input', updateChosenTags);
 
