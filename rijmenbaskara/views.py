@@ -239,11 +239,46 @@ def home(request):
     })
 
 def works(request):
-    projects = [_with_project_image_urls(project) for project in _load_projects()]
-    return render(request, 'works.html', {
-        "projects": projects,
-        "is_admin": request.user.is_authenticated and request.user.is_staff,
-    })
+    all_projects = _load_projects() 
+
+    active_tag = request.GET.get('tag', '').strip()
+    query = request.GET.get('q', '').strip().lower()
+
+    # 1. Get all unique categories for the filter bar
+    cat_set = set()
+    for p in all_projects:
+        cats = p.get('category', [])
+        if isinstance(cats, str): cats = [cats]
+        for c in cats:
+            if c: cat_set.add(c)
+    cat_choices = sorted(list(cat_set), key=str.casefold)
+
+    # 2. Filter logic
+    filtered_projects = []
+    for p in all_projects:
+        p_cats = p.get('category', [])
+        if isinstance(p_cats, str): p_cats = [p_cats]
+        p_cats_lower = [c.lower() for c in p_cats]
+        
+        matches_tag = not active_tag or active_tag.lower() in p_cats_lower
+        
+        matches_query = not query or (
+            query in p.get('title', '').lower() or 
+            query in p.get('description', '').lower() or
+            any(query in c.lower() for c in p_cats)
+        )
+
+        if matches_tag and matches_query:
+            filtered_projects.append(_with_project_image_urls(p))
+
+    context = {
+        'projects': filtered_projects,
+        'cat_choices': cat_choices,
+        'active_tag': active_tag,
+        'project_query': query,
+        'is_admin': request.user.is_staff
+    }
+    return render(request, 'works.html', context)
 
 def articles(request):
     all_articles = _load_articles() # Keep a master list
@@ -637,9 +672,13 @@ def edit_project(request, project_id):
         return redirect('works')
     
     all_projects = _load_projects()
-    project = _with_project_image_urls(_load_project(project_id))
     
-    # Handle old string data if it exists
+    project_data = _load_project(project_id)
+    if not project_data:
+        return redirect('works')
+        
+    project = _with_project_image_urls(project_data)
+    
     current_cats = project.get("category", [])
     if isinstance(current_cats, str):
         current_cats = [current_cats] if current_cats else []
@@ -651,35 +690,41 @@ def edit_project(request, project_id):
         title = request.POST.get('title', '').strip()
         description = request.POST.get('description', '').strip()
         
-        # 1. EXPLICIT CATEGORY PARSING
         selected_cats = request.POST.getlist('categories')
         custom_cats_raw = request.POST.get('custom_categories', '').strip()
-        draft_custom = custom_cats_raw # save for re-rendering on failure
+        draft_custom = custom_cats_raw 
         
         categories = set(c.strip() for c in selected_cats if c.strip())
         if custom_cats_raw:
             categories.update(c.strip() for c in custom_cats_raw.split(',') if c.strip())
         categories = sorted(list(categories), key=str.casefold)
 
-        # 2. VALIDATION
+        keep_existing = request.POST.get('keep_existing') == 'true'
+        
+        if keep_existing:
+            final_images = request.POST.getlist('ordered_filenames')
+        else:
+            final_images = []
+
+        new_files = request.FILES.getlist('new_images')
+        for f in new_files:
+            new_img_path = _save_project_image(f) 
+            final_images.append(new_img_path)
+
         errors = []
         if not title: errors.append('Title is required.')
         if not categories: errors.append('At least one category is required.')
 
         if not errors:
             try:
-                # --- Keep your existing image handling logic here ---
-                # (I'm assuming you have your keep_existing / new_images logic here)
-                
-                # Update project details
                 for p in all_projects:
                     if p.get('id') == project_id:
                         p['title'] = title.upper()
                         p['description'] = description
                         p['category'] = categories
-                        # p['images'] = ... (your updated images list)
+                        p['images'] = final_images 
                         break
-                        
+                
                 _save_projects(all_projects)
                 messages.success(request, 'Project updated successfully!')
                 return redirect('works')
@@ -687,11 +732,9 @@ def edit_project(request, project_id):
             except Exception as e:
                  errors.append(f'Error updating project: {str(e)}')
                  
-        # 3. IF ERRORS, SEND THEM TO THE UI
         for error in errors:
             messages.error(request, error)
             
-        # Temporarily update the project object so the UI keeps what they typed
         project['title'] = title
         project['description'] = description
         current_cats = categories
@@ -704,16 +747,43 @@ def edit_project(request, project_id):
     })
 
 
+def _delete_physical_images(image_list):
+    """Helper to remove files from the media/projects folder"""
+    for filename in image_list:
+        file_path = os.path.join(settings.MEDIA_ROOT, 'projects', filename)
+        if os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except Exception as e:
+                print(f"Error deleting file {file_path}: {e}")
+
+
 def delete_project(request, project_id):
-    """Delete a project"""
     if not _ensure_staff(request):
         return redirect('works')
     
     if request.method == 'POST':
-        projects = _load_projects()
-        projects = [p for p in projects if p.get('id') != project_id]
-        _save_projects(projects)
-        messages.success(request, 'Project deleted successfully!')
+        all_projects = _load_projects()
+        
+        project_to_del = next((p for p in all_projects if p.get('id') == project_id), None)
+        
+        if project_to_del:
+            image_list = project_to_del.get('images', [])
+            for img_path in image_list:
+                full_path = os.path.join(settings.MEDIA_ROOT, img_path)
+                
+                if os.path.exists(full_path):
+                    try:
+                        os.remove(full_path)
+                    except Exception as e:
+                        print(f"Error deleting file {full_path}: {e}")
+
+            new_projects_list = [p for p in all_projects if p.get('id') != project_id]
+            _save_projects(new_projects_list)
+            
+            messages.success(request, 'Project and images deleted successfully!')
+        else:
+            messages.error(request, 'Could not find that project to delete.')
     
     return redirect('works')
 

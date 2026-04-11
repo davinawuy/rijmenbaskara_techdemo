@@ -147,60 +147,99 @@
     const fileInput = document.getElementById('fileInput');
     const uploadArea = document.getElementById('uploadArea');
     const preview = document.getElementById('preview');
-    const el = document.getElementById('sortable-grid');
+    const existingGrid = document.getElementById('sortable-grid');
+    
     let selectedFiles = [];
 
-    new Sortable(el, {
-      animation: 150,
-      ghostClass: 'sortable-ghost'
-    });
-
-    fileInput.addEventListener('change', function(e) {
-      handleFiles(e.target.files);
-    });
-
-    uploadArea.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-    });
-
-    uploadArea.addEventListener('drop', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      const files = e.dataTransfer.files;
-      fileInput.files = files;
-      handleFiles(files);
-    });
-
-    function handleFiles(files) {
-      selectedFiles = Array.from(files);
-      preview.innerHTML = '';
-      
-      selectedFiles.forEach((file, index) => {
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-          const div = document.createElement('div');
-          div.className = 'preview-item';
-          div.innerHTML = `
-            <button type="button" class="remove-btn" onclick="removeFile(${index})">×</button>
-            <img src="${e.target.result}" alt="${file.name}">
-            <div class="filename">${file.name}</div>
-          `;
-          preview.appendChild(div);
-        }
-        
-        reader.readAsDataURL(file);
-      });
+    // Sortable for Existing Images (if they exist)
+    if (existingGrid) {
+        new Sortable(existingGrid, {
+            animation: 150,
+            ghostClass: 'sortable-ghost'
+        });
     }
 
-    function removeFile(index) {
-      selectedFiles.splice(index, 1);
-      const dt = new DataTransfer();
-      selectedFiles.forEach(file => dt.items.add(file));
-      fileInput.files = dt.files;
-      handleFiles(fileInput.files);
+    // Sortable for New Image Previews
+    if (preview) {
+        new Sortable(preview, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            onEnd: function() {
+                reSyncFiles();
+            }
+        });
+    }
+
+    fileInput.addEventListener('change', function(e) {
+        const newBatch = Array.from(e.target.files);
+        selectedFiles = selectedFiles.concat(newBatch);
+        renderPreviews();
+    });
+
+    uploadArea.addEventListener('dragover', e => { 
+        e.preventDefault(); 
+        uploadArea.classList.add('dragover'); 
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', e => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const files = Array.from(e.dataTransfer.files);
+        selectedFiles = selectedFiles.concat(files);
+        renderPreviews();
+    });
+
+    function renderPreviews() {
+        preview.innerHTML = '';
+        
+        selectedFiles.forEach((file, index) => {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const div = document.createElement('div');
+                div.className = 'preview-item';
+                div.setAttribute('data-filename', file.name); 
+                
+                div.innerHTML = `
+                    <button type="button" class="remove-btn" onclick="removeFile('${file.name}')">×</button>
+                    <img src="${e.target.result}" alt="${file.name}" draggable="false">
+                    <div class="filename">${file.name}</div>
+                `;
+                preview.appendChild(div);
+            }
+            reader.readAsDataURL(file);
+        });
+        
+        updateFileInput();
+    }
+
+    function reSyncFiles() {
+        const currentItems = Array.from(preview.querySelectorAll('.preview-item'));
+        const newOrderedFiles = [];
+
+        currentItems.forEach(item => {
+            const fname = item.getAttribute('data-filename');
+            const fileMatch = selectedFiles.find(f => f.name === fname);
+            if (fileMatch) newOrderedFiles.push(fileMatch); 
+        });
+
+        selectedFiles = newOrderedFiles;
+        updateFileInput();
+    }
+
+    function removeFile(filename) {
+        selectedFiles = selectedFiles.filter(f => f.name !== filename);
+        renderPreviews();
+    }
+
+    function updateFileInput() {
+        const dt = new DataTransfer();
+        selectedFiles.forEach(file => dt.items.add(file));
+        fileInput.files = dt.files;
     }
   </script>
 </body>

@@ -66,22 +66,52 @@
             {% endif %}
 
             <!-- Search and Filter Controls -->
-            <section class="search-filter-section">
-              <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="Search projects..." aria-label="Search projects">
-                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <path d="m21 21-4.35-4.35"></path>
-                </svg>
-              </div>
-              <div class="filter-buttons">
-                <button class="filter-btn active" data-filter="all">All</button>
-                <button class="filter-btn" data-filter="30k">30k</button>
-                <button class="filter-btn" data-filter="40k">40k</button>
-                <button class="filter-btn" data-filter="terrain">Terrain</button>
-                <button class="filter-btn" data-filter="age-of-sigmar">Age of Sigmar</button>
+            <section class="filter-bar anim-up">
+              <div class="filter-bar__top">
+                <div>
+                  <div class="filter-bar__label">Filter by category</div>
+                  <div class="filter-bar__chips">
+                    <a class="filter-chip {% if not active_tag %}is-active{% endif %}" href="{% url 'works' %}">All</a>
+                    
+                    {% for cat in cat_choices %}
+                      <a class="filter-chip {% if active_tag == cat %}is-active{% endif %}" 
+                        href="{% url 'works' %}?tag={{ cat }}{% if project_query %}&q={{ project_query }}{% endif %}">
+                        {{ cat }}
+                      </a>
+                    {% endfor %}
+                  </div>
+                  
+                  {% if active_tag %}
+                    <div class="filter-bar__note">Showing projects categorized as "{{ active_tag }}".</div>
+                  {% endif %}
+                </div>
+
+                <form method="get" action="{% url 'works' %}" class="filter-search">
+                  {% if active_tag %}
+                    <input type="hidden" name="tag" value="{{ active_tag }}">
+                  {% endif %}
+                  <input type="text" name="q" value="{{ project_query }}" placeholder="Search projects..." aria-label="Search projects">
+                  <button type="submit">Search</button>
+                </form>
               </div>
             </section>
+
+            <div class="project-header">
+              <h2 class="project-title">{{ project.title }}</h2>
+              
+              {% if project.category %}
+              <div class="tag-row" style="margin-top: 4px;">
+                {% for cat in project.category %}
+                  <span class="tag-chip" style="font-size: 0.7rem; opacity: 0.7;">{{ cat }}</span>
+                {% endfor %}
+              </div>
+              {% endif %}
+
+              {% if is_admin %}
+                <div class="project-actions">
+                    </div>
+              {% endif %}
+            </div>
 
             <!-- Gallery Grid -->
             <section class="works-gallery-grid">
