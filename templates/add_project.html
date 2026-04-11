@@ -42,7 +42,7 @@
           
           {% if messages %}
             {% for message in messages %}
-              <div style="padding: 12px; margin-bottom: 20px; border-radius: 4px; background: {% if message.tags == 'error' %}#fee;{% else %}#efe;{% endif %}">
+              <div style="color: black; padding: 12px; margin-bottom: 20px; border-radius: 4px; background: {% if message.tags == 'error' %}#fee;{% else %}#efe;{% endif %}">
                 {{ message }}
               </div>
             {% endfor %}
@@ -73,14 +73,13 @@
             </div>
 
             <div class="form-group">
-              <label>Upload Images* (Select multiple files)</label>
+              <label>Upload Images* <small style="font-weight: normal; opacity: 0.6;">(Drag to reorder)</small></h3></label>
               <div class="file-upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
                 <div class="upload-icon">📁</div>
                 <div class="upload-text">Click to select images or drag and drop</div>
-                <div class="upload-hint">Accepted: JPG, JPEG, PNG, GIF, WebP</div>
                 <input type="file" id="fileInput" name="images" 
-                       accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" 
-                       multiple required>
+                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" 
+                      multiple required>
               </div>
               <div id="preview" class="preview-grid"></div>
             </div>
@@ -96,71 +95,88 @@
   </div>
 
   <script src="{% static 'js/theme-toggle.js' %}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <script>
     const fileInput = document.getElementById('fileInput');
     const uploadArea = document.getElementById('uploadArea');
     const preview = document.getElementById('preview');
     let selectedFiles = [];
 
-    // Handle file selection
-    fileInput.addEventListener('change', function(e) {
-      handleFiles(e.target.files);
+    new Sortable(preview, {
+      animation: 150,
+      ghostClass: 'sortable-ghost',
+      onEnd: function() {
+        reorderFiles();
+      }
     });
 
-    // Drag and drop handlers
-    uploadArea.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      uploadArea.classList.add('drag-over');
-    });
+    function addNewFiles(files) {
+      const newFiles = Array.from(files);
+      selectedFiles = selectedFiles.concat(newFiles);
+      renderPreview();
+    }
 
-    uploadArea.addEventListener('dragleave', function(e) {
+    fileInput.addEventListener('change', (e) => {
+      addNewFiles(e.target.files); 
+    });
+    
+
+    uploadArea.addEventListener('drop', (e) => {
       e.preventDefault();
       e.stopPropagation();
+
       uploadArea.classList.remove('drag-over');
+      addNewFiles(e.dataTransfer.files);
     });
 
-    uploadArea.addEventListener('drop', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      uploadArea.classList.remove('drag-over');
-      
-      const files = e.dataTransfer.files;
-      fileInput.files = files;
-      handleFiles(files);
-    });
-
-    function handleFiles(files) {
-      selectedFiles = Array.from(files);
+    function renderPreview() {
       preview.innerHTML = '';
       
-      selectedFiles.forEach((file, index) => {
+      selectedFiles.forEach((file) => {
         const reader = new FileReader();
-        
         reader.onload = function(e) {
           const div = document.createElement('div');
           div.className = 'preview-item';
+          div.setAttribute('data-filename', file.name); 
           div.innerHTML = `
-            <button type="button" class="remove-btn" onclick="removeFile(${index})">×</button>
+            <button type="button" class="remove-btn" onclick="removeFile('${file.name}')">×</button>
             <img src="${e.target.result}" alt="${file.name}">
             <div class="filename">${file.name}</div>
           `;
           preview.appendChild(div);
         }
-        
         reader.readAsDataURL(file);
       });
+      updateFileInput();
     }
 
-    function removeFile(index) {
-      selectedFiles.splice(index, 1);
-      
+    function reorderFiles() {
+      const currentItems = Array.from(preview.querySelectorAll('.preview-item'));
+      const newOrderedFiles = [];
+
+      currentItems.forEach(item => {
+        const filename = item.getAttribute('data-filename');
+        const fileMatch = selectedFiles.find(f => f.name === filename);
+        if (fileMatch) newOrderedFiles.push(fileMatch);
+      });
+
+      selectedFiles = newOrderedFiles;
+      updateFileInput();
+    }
+
+    function removeFile(filename) {
+      selectedFiles = selectedFiles.filter(f => f.name !== filename);
+      renderPreview();
+    }
+
+    function updateFileInput() {
       const dt = new DataTransfer();
       selectedFiles.forEach(file => dt.items.add(file));
       fileInput.files = dt.files;
-      
-      handleFiles(fileInput.files);
     }
+
+    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
   </script>
 </body>
 </html>

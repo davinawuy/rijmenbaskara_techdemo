@@ -175,6 +175,8 @@ html {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  overflow: hidden;
+  width: 100%;
 }
 
 .project-header{
@@ -230,6 +232,8 @@ html {
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--ink);
+  width: 100%;
+  word-wrap: break-word;
 }
 
 .project-description{
@@ -238,6 +242,8 @@ html {
   font-size: 14px;
   color: var(--muted);
   line-height: 1.6;
+  width: 100%;
+  word-wrap: break-word;
 }
 
 .no-projects{

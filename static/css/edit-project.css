@@ -67,8 +67,7 @@
   position: relative;
   border-radius: 4px;
   overflow: hidden;
-  border: 1px solid #eee;
-  transition: transform 0.2s ease;
+  border: 2px solid #4CAF50;
 }
 
 .current-image-item:active {

@@ -42,7 +42,7 @@
           
           {% if messages %}
             {% for message in messages %}
-              <div style="color: var(--bg); padding: 12px; margin-bottom: 20px; border-radius: 4px; background: {% if message.tags == 'error' %}#fee;{% else %}#efe;{% endif %}">
+              <div style="color: black; padding: 12px; margin-bottom: 20px; border-radius: 4px; background: {% if message.tags == 'error' %}#fee;{% else %}#efe;{% endif %}">
                 {{ message }}
               </div>
             {% endfor %}

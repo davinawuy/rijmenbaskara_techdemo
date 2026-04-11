@@ -86,6 +86,7 @@
     gap: 12px;
     margin-top: 20px;
 }
+
 .preview-item{
     position: relative;
     border: 2px solid #4CAF50;
@@ -98,6 +99,10 @@
     height: 150px;
     object-fit: cover;
     display: block;
+}
+
+.preview-item:active {
+    cursor: grabbing;
 }
 
 .preview-item .filename{
