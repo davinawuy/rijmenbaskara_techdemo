@@ -16,7 +16,7 @@
     display: block;
     font-family: var(--sans);
     font-weight: 600;
-    font-size: 14px;
+    font-size: 12px;
     margin-bottom: 8px;
     color: var(--ink);
 }
@@ -28,7 +28,7 @@
     border: 1px solid var(--rule);
     border-radius: 4px;
     font-family: var(--sans);
-    font-size: 14px;
+    font-size: 12px;
     background: var(--bg);
     color: var(--ink);
 }
@@ -38,7 +38,7 @@
     min-height: 100px;
 }
 
-.categories-chooser__grid{
+.tags-chooser__grid{
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -46,7 +46,7 @@
   width: 100%;
 }
 
-.custom-categories-field{
+.custom-tags-field{
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -55,7 +55,7 @@
   font-family: var(--sans);
 }
 
-.custom-categories-field span{
+.custom-tags-field span{
   font-weight: 600;
   font-size: 12px;
   letter-spacing: 0.08em;
@@ -63,7 +63,7 @@
   color: var(--muted);
 }
 
-.custom-categories-field input{
+.custom-tags-field input{
   width: 100%;
   border: 1px solid var(--rule);
   background: rgba(11,11,11,.02);
@@ -75,22 +75,22 @@
   transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
-.custom-categories-field input:focus{
+.custom-tags-field input:focus{
   border-color: rgba(11,11,11,.4);
   background: transparent;
 }
 
-.custom-categories-field small{
+.custom-tags-field small{
   font-weight: 500;
   font-size: 12px;
   color: var(--muted);
 }
 
-.categories-manager {
+.tags-manager {
   margin-top: 24px;
 }
 
-.categories-manager__label {
+.tags-manager__label {
   font-family: var(--sans);
   font-weight: 600;
   font-size: 12px;
@@ -100,7 +100,7 @@
   margin-bottom: 12px;
 }
 
-.chosen-categories-area {
+.chosen-tags-area {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -108,7 +108,7 @@
   min-height: 32px;
 }
 
-.category-card {
+.tag-card {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -124,7 +124,7 @@
   color: var(--bg);
 }
 
-.category-card button {
+.tag-card button {
   background: none;
   border: none;
   color: var(--bg);
@@ -136,13 +136,13 @@
   transition: opacity 0.2s ease;
 }
 
-.category-controls {
+.tag-controls {
   display: flex;
   gap: 8px;
   margin-bottom: 12px;
 }
 
-.category-btn {
+.tag-btn {
   font-family: var(--sans);
   font-weight: 600;
   font-size: 11px;
@@ -157,19 +157,19 @@
   transition: all 0.2s ease;
 }
 
-.category-btn:hover {
+.tag-btn:hover {
   border-color: var(--ink);
   color: var(--ink);
 }
 
-.category-btn.is-active {
+.tag-btn.is-active {
   border-style: solid;
   border-color: var(--ink);
   background: rgba(11,11,11,.05);
   color: var(--ink);
 }
 
-.category-panel-container {
+.tag-panel-container {
   background: rgba(11,11,11,.02);
   border: 1px solid var(--rule);
   padding: 20px;
@@ -177,7 +177,7 @@
   margin-top: 8px;
 }
 
-.category-search-input {
+.tag-search-input {
   width: 100%;
   border: 1px solid var(--rule);
   background: var(--bg);
@@ -189,7 +189,7 @@
   outline: none;
 }
 
-.category-toggle-item {
+.tag-toggle-item {
   display: inline-flex;
   align-items: center;
   padding: 6px 14px;
@@ -204,15 +204,15 @@
   transition: all 0.2s ease;
 }
 
-.category-toggle-item input { display: none; }
+.tag-toggle-item input { display: none; }
 
-.category-toggle-item:has(input:checked) {
+.tag-toggle-item:has(input:checked) {
   background: var(--ink);
   color: var(--bg);
   border-color: var(--ink);
 }
 
-.custom-categories-field input {
+.custom-tags-field input {
   width: 100%;
   border: 1px solid var(--rule);
   background: var(--bg);
@@ -222,7 +222,6 @@
   font: inherit;
   font-size: 14px;
 }
-
 
 .file-upload-area{
     border: 2px dashed var(--rule);

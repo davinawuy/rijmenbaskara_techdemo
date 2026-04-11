@@ -298,6 +298,7 @@
   text-transform: uppercase;
   background: var(--ink);
   color: var(--bg);
+  word-wrap: break-word;
 }
 
 .tag-card button {
