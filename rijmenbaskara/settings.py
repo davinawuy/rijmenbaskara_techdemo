@@ -134,7 +134,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Media (serves article covers in development)
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'articles_store'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Email Configuration
 # For development, using console backend (prints emails to console)

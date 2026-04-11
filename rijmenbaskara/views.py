@@ -17,16 +17,20 @@ import zipfile
 import io
 import os
 
-# File-based article storage (local file management)
+# --- ARTICLE STORAGE ---
 ARTICLES_DIR = Path(settings.BASE_DIR) / "articles_store"
 ARTICLES_DIR.mkdir(exist_ok=True)
-ARTICLES_COVERS_DIR = ARTICLES_DIR / "covers"
-ARTICLES_COVERS_DIR.mkdir(exist_ok=True)
+
+ARTICLES_COVERS_DIR = Path(settings.MEDIA_ROOT) / "articles"
+ARTICLES_COVERS_DIR.mkdir(parents=True, exist_ok=True)
+
+
+# --- PROJECT STORAGE ---
+PROJECTS_DIR = Path(settings.BASE_DIR) / "projects_store"
+PROJECTS_DIR.mkdir(exist_ok=True)
+
 PROJECT_UPLOADS_DIR = Path(settings.MEDIA_ROOT) / "projects"
 PROJECT_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
-GALLERIES_UPLOADS_DIR = Path(settings.MEDIA_ROOT) / "galleries"
-GALLERIES_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
-LEGACY_STATIC_IMAGES_DIR = Path(settings.BASE_DIR) / "static" / "images"
 
 
 def _media_url(*parts: str) -> str:
@@ -41,7 +45,7 @@ def _project_image_url(image_ref: Optional[str]) -> Optional[str]:
         return image_ref
 
     normalized = image_ref.strip().replace("\\", "/").lstrip("/")
-    if normalized.startswith(("projects/", "galleries/", "covers/")):
+    if normalized.startswith(("projects/", "galleries/", "articles/")):
         return _media_url(normalized)
 
     return _media_url("legacy-static", Path(normalized).name)
@@ -84,22 +88,19 @@ def _load_article(article_id: str):
     return data
 
 
-def _project_path(project_id: str) -> Path:
-    return PROJECTS_DIR / f"{project_id}.json"
-
-
 def _load_projects():
-    items = []
-    for path in PROJECTS_DIR.glob("*.json"):
+    projects_file = PROJECTS_DIR / "seed_projects.json"
+    if projects_file.exists():
         try:
-            data = json.loads(path.read_text(encoding="utf-8"))
+            data = json.loads(projects_file.read_text(encoding="utf-8"))
+            return sorted(data, key=lambda x: x.get("created_at", ""), reverse=True)
         except Exception:
-            continue
-    
-    return sorted(items, key=lambda x: x.get("created_at", ""), reverse=True)
+            pass
+    return []
 
 
 def _load_project(project_id: str):
+    """Load a single project by ID"""
     projects = _load_projects()
     for project in projects:
         if project.get("id") == project_id:
@@ -171,9 +172,6 @@ def _parse_article_tags(selected_tags, custom_tags_raw=""):
     return _merge_tag_choices(selected_tags, custom_tags)
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".tif", ".tiff"}
-WORKS_MAX_ITEMS = 10
-PROJECTS_DIR = Path(settings.BASE_DIR) / "projects_store"
-PROJECTS_DIR.mkdir(exist_ok=True)
 
 def contact(request):
     if request.method == 'POST':
@@ -406,7 +404,7 @@ def export_content_backup(request):
                     zip_file.write(file_path, arcname)
         
         # Add static/images directory (galleries, projects, etc.)
-        images_dir = Path(settings.BASE_DIR) / "static" / "images"
+        images_dir = Path(settings.MEDIA_ROOT)
         if images_dir.exists():
             for file_path in images_dir.rglob('*'):
                 if file_path.is_file():
@@ -428,19 +426,19 @@ def export_content_backup(request):
 
 ## Contents:
 - articles_store/: All article JSON files and cover images
-- static/images/: Gallery images, project images, and other static images
 - projects_store/: Project data files
+- media/: Gallery images, project images, and other static images
 
 ## Restoration Instructions:
 
 1. Extract this ZIP file
 2. Copy the folders to your project root directory:
    - articles_store/ -> <project_root>/articles_store/
-   - static/images/ -> <project_root>/static/images/
    - projects_store/ -> <project_root>/projects_store/
+   - media/ -> <project_root>/media/
 
 3. Ensure proper permissions (on Linux/Mac):
-   chmod -R 755 articles_store/ static/images/ projects_store/
+   chmod -R 755 articles_store/ projects_store/ media/
 
 4. Restart your Django server
 
@@ -457,79 +455,6 @@ All content will be immediately available.
     messages.success(request, f'Backup created successfully: rijmenbaskara_backup_{timestamp}.zip')
     
     return response
-
-
-def add_work(request, gallery_id="default"):
-    """
-    Simple server-rendered uploader for gallery items.
-    Requires title, image, and thumbnail. Admin-only.
-    """
-    if not _ensure_staff(request):
-        return redirect('works')
-
-    gallery_id = _slugify(gallery_id)
-    gallery_dir = _gallery_dir(gallery_id)
-    meta_path = _gallery_meta_path(gallery_id)
-    gallery_dir.mkdir(parents=True, exist_ok=True)
-    errors = {}
-    draft_title = ""
-    used_count = _gallery_item_count(gallery_id)
-    limit_reached = used_count >= WORKS_MAX_ITEMS
-
-    if request.method == 'POST':
-        gallery_action = request.POST.get('gallery_action', '').strip()
-        item_id = request.POST.get('item_id', '').strip()
-
-        if gallery_action in {"move_up", "move_down", "delete"} and item_id:
-            if gallery_action == "delete":
-                _delete_gallery_item(gallery_id, item_id)
-                messages.success(request, "Gallery image removed.")
-            else:
-                moved = _move_gallery_item(gallery_id, item_id, "up" if gallery_action == "move_up" else "down")
-                if moved:
-                    messages.success(request, "Gallery order updated.")
-                else:
-                    messages.info(request, "That image is already at the edge of the gallery.")
-            return redirect('add_work', gallery_id=gallery_id)
-
-        title = request.POST.get('title', '').strip()
-        draft_title = title
-        image_file = request.FILES.get('image')
-        thumb_file = request.FILES.get('thumbnail')
-
-        if limit_reached:
-            errors.setdefault("limit", []).append(f"Limit reached ({WORKS_MAX_ITEMS} photos). Remove one to add another.")
-        if not title:
-            errors.setdefault("title", []).append("Title is required.")
-        if not image_file:
-            errors.setdefault("image", []).append("Full image is required.")
-        if not thumb_file:
-            errors.setdefault("thumbnail", []).append("Thumbnail image is required.")
-
-        def _valid_image(file_obj):
-            return file_obj and Path(file_obj.name).suffix.lower() in IMAGE_EXTS
-
-        if image_file and not _valid_image(image_file):
-            errors.setdefault("image", []).append("Full image must be an image file.")
-        if thumb_file and not _valid_image(thumb_file):
-            errors.setdefault("thumbnail", []).append("Thumbnail must be an image file.")
-
-        if not errors and used_count < WORKS_MAX_ITEMS:
-            new_item = _save_gallery_item(gallery_id, title, image_file, thumb_file)
-            messages.success(request, "Work added.")
-            target = f"{reverse('works')}?gallery={gallery_id}&select={new_item.get('id')}"
-            return redirect(target)
-
-    context = {
-        "errors": errors,
-        "draft_title": draft_title,
-        "works_used": used_count,
-        "works_limit": WORKS_MAX_ITEMS,
-        "limit_reached": limit_reached,
-        "gallery_id": gallery_id,
-        "gallery_items": _load_gallery_items(gallery_id),
-    }
-    return render(request, 'add_work.html', context)
 
 
 def _article_form(request, article_id=None, is_edit=False):
@@ -611,7 +536,7 @@ def _article_form(request, article_id=None, is_edit=False):
                 with target.open('wb') as fh:
                     for chunk in cover_file.chunks():
                         fh.write(chunk)
-                cover_path = _media_url("covers", cover_name)
+                cover_path = _media_url("articles", cover_name)
 
             record["cover"] = cover_path
             record["id"] = article_id
@@ -639,333 +564,6 @@ def _article_form(request, article_id=None, is_edit=False):
 
     return render(request, 'add_article.html', context)
 
-
-def _load_works_meta(meta_path: Path):
-    """
-    Reads optional metadata for uploads and normalizes shape.
-    Supports both {"file.jpg": "Title"} and {"file.jpg": {"title": "...", "tags": [...], "genre": "...", "quality": "...", "thumb": "thumb.jpg"}}.
-    """
-    if not meta_path.exists():
-        return {}
-    try:
-        data = json.loads(meta_path.read_text(encoding="utf-8"))
-    except Exception:
-        return {}
-
-    normalized = {}
-    if not isinstance(data, dict):
-        return normalized
-
-    for key, val in data.items():
-        title = Path(key).stem
-        tags = []
-        genre = None
-        quality = None
-        extra_tags = []
-        thumb = None
-        if isinstance(val, dict):
-            title = val.get("title") or val.get("name") or title
-            extra_tags = val.get("tags") or []
-            genre = val.get("genre")
-            quality = val.get("quality")
-            thumb = val.get("thumb")
-        elif val:
-            title = str(val)
-
-        if genre:
-            tags.append(f"Genre:{genre}")
-        if quality:
-            tags.append(f"Quality:{quality}")
-        tags.extend([t for t in extra_tags if t])
-        entry = {"title": title, "tags": tags}
-        if thumb:
-            entry["thumb"] = thumb
-        normalized[key] = entry
-    return normalized
-
-
-def _save_works_meta(meta_path: Path, meta: dict):
-    meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
-
-
-def _count_upload_photos(uploads_dir: Path, meta_path: Path) -> int:
-    uploads_dir.mkdir(parents=True, exist_ok=True)
-    meta = _load_works_meta(meta_path)
-    thumb_files = {entry.get("thumb") for entry in meta.values() if isinstance(entry, dict) and entry.get("thumb")}
-    count = 0
-    for path in uploads_dir.iterdir():
-        if not path.is_file() or path.suffix.lower() not in IMAGE_EXTS:
-            continue
-        if path.name in thumb_files:
-            continue
-        count += 1
-    return count
-
-
-def _gallery_dir(gallery_id: str) -> Path:
-    return GALLERIES_UPLOADS_DIR / _slugify(gallery_id or "default")
-
-
-def _gallery_meta_path(gallery_id: str) -> Path:
-    return _gallery_dir(gallery_id) / "gallery.json"
-
-
-def _load_gallery_meta(gallery_id: str) -> dict:
-    meta_path = _gallery_meta_path(gallery_id)
-    if not meta_path.exists():
-        return {"items": []}
-    try:
-        return json.loads(meta_path.read_text(encoding="utf-8"))
-    except Exception:
-        return {"items": []}
-
-
-def _normalize_gallery_items(items):
-    normalized = []
-    for idx, item in enumerate(items or []):
-        if not isinstance(item, dict):
-            continue
-        entry = item.copy()
-        try:
-            position = int(entry.get("position", idx))
-        except (TypeError, ValueError):
-            position = idx
-        entry["position"] = position
-        normalized.append(entry)
-
-    normalized.sort(key=lambda x: (x.get("position", 0), x.get("createdAt", "")))
-    for idx, item in enumerate(normalized):
-        item["position"] = idx
-    return normalized
-
-
-def _save_gallery_meta(gallery_id: str, data: dict):
-    dir_path = _gallery_dir(gallery_id)
-    dir_path.mkdir(parents=True, exist_ok=True)
-    meta_path = _gallery_meta_path(gallery_id)
-    payload = dict(data or {})
-    payload["items"] = _normalize_gallery_items(payload.get("items") or [])
-    meta_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-
-
-def _load_gallery_items(gallery_id: str):
-    meta = _load_gallery_meta(gallery_id)
-    return _normalize_gallery_items(meta.get("items") or [])
-
-
-def _gallery_item_count(gallery_id: str) -> int:
-    return len(_load_gallery_items(gallery_id))
-
-
-def _save_gallery_item(gallery_id: str, title: str, image_file, thumb_file):
-    dir_path = _gallery_dir(gallery_id)
-    dir_path.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S%f")
-    base_slug = _slugify(title) or "work"
-    gallery_slug = _slugify(gallery_id)
-
-    def _store(file_obj, label):
-        unique_suffix = uuid4().hex[:8]
-        fname = f"{timestamp}-{base_slug}-{label}-{unique_suffix}{Path(file_obj.name).suffix.lower()}"
-        target = dir_path / fname
-        while target.exists():
-            unique_suffix = uuid4().hex[:8]
-            fname = f"{timestamp}-{base_slug}-{label}-{unique_suffix}{Path(file_obj.name).suffix.lower()}"
-            target = dir_path / fname
-        with target.open('wb') as fh:
-            for chunk in file_obj.chunks():
-                fh.write(chunk)
-        return fname
-
-    image_name = _store(image_file, "full")
-    thumb_name = _store(thumb_file, "thumb")
-    item_id = f"{timestamp}-{base_slug}-{uuid4().hex[:6]}"
-    existing_items = _load_gallery_items(gallery_id)
-    item = {
-        "id": item_id,
-        "title": title,
-        "src": _media_url("galleries", gallery_slug, image_name),
-        "thumb": _media_url("galleries", gallery_slug, thumb_name),
-        "createdAt": timestamp,
-        "position": len(existing_items),
-        "tags": ["Quality:Upload", "Genre:Misc"],
-    }
-
-    meta = _load_gallery_meta(gallery_id)
-    items = _normalize_gallery_items(meta.get("items") or [])
-    items.append(item)
-    meta["items"] = items
-    _save_gallery_meta(gallery_id, meta)
-    return item
-
-
-def _move_gallery_item(gallery_id: str, item_id: str, direction: str):
-    meta = _load_gallery_meta(gallery_id)
-    items = _normalize_gallery_items(meta.get("items") or [])
-    index = next((idx for idx, item in enumerate(items) if str(item.get("id")) == str(item_id)), None)
-    if index is None:
-        return False
-
-    if direction == "up" and index > 0:
-        swap_index = index - 1
-    elif direction == "down" and index < len(items) - 1:
-        swap_index = index + 1
-    else:
-        return False
-
-    items[index], items[swap_index] = items[swap_index], items[index]
-    meta["items"] = items
-    _save_gallery_meta(gallery_id, meta)
-    return True
-
-
-def _delete_gallery_item(gallery_id: str, item_id: str):
-    dir_path = _gallery_dir(gallery_id)
-    meta = _load_gallery_meta(gallery_id)
-    items = _normalize_gallery_items(meta.get("items") or [])
-    remaining = []
-    deleted_paths = []
-    for item in items:
-        if str(item.get("id")) == str(item_id):
-            if item.get("src"):
-                deleted_paths.append(dir_path / Path(item["src"]).name)
-            if item.get("thumb"):
-                deleted_paths.append(dir_path / Path(item["thumb"]).name)
-            continue
-        remaining.append(item)
-    meta["items"] = remaining
-    _save_gallery_meta(gallery_id, meta)
-    for path in deleted_paths:
-        try:
-            if path.exists():
-                path.unlink()
-        except Exception:
-            continue
-
-
-def _load_works_items():
-    uploads_dir = Path(settings.MEDIA_ROOT) / "works_uploads"
-    uploads_dir.mkdir(parents=True, exist_ok=True)
-    uploads_meta = _load_works_meta(uploads_dir / "works_meta.json")
-    thumb_files = {entry.get("thumb") for entry in uploads_meta.values() if isinstance(entry, dict) and entry.get("thumb")}
-
-    upload_items = []
-    for path in uploads_dir.iterdir():
-        if not path.is_file() or path.suffix.lower() not in IMAGE_EXTS:
-            continue
-        if path.name in thumb_files:
-            continue
-        meta = uploads_meta.get(path.name) or uploads_meta.get(path.stem) or {}
-        title = meta.get("title") or path.stem
-        tags = list(meta.get("tags") or [])
-        thumb_override = meta.get("thumb")
-        if not any(tag.startswith("Quality:") for tag in tags):
-            tags.append("Quality:Upload")
-        if not any(tag.startswith("Genre:") for tag in tags):
-            tags.append("Genre:Misc")
-        upload_items.append({
-            "title": title,
-            "images": [_media_url("works_uploads", path.name)],
-            "tags": tags,
-            "slug": _slugify(title),
-            "thumb": _media_url("works_uploads", thumb_override) if thumb_override else _media_url("works_uploads", path.name),
-        })
-
-    # Sensei gallery sample from infinitecarousel (single, larger gallery)
-    sensei_dir = Path(settings.MEDIA_ROOT) / "infinitecarousel"
-    sensei_images = []
-    if sensei_dir.exists():
-        for path in sorted(sensei_dir.glob("*")):
-            if path.is_file() and path.suffix.lower() in IMAGE_EXTS:
-                sensei_images.append(_media_url("infinitecarousel", path.name))
-    sensei_items = []
-    if sensei_images:
-        sensei_items.append({
-            "title": "SenseiWagnibiart Gallery",
-            "images": sensei_images,
-            "tags": ["Quality:Showcase", "Genre:Mech", "SenseiWagnibiart"],
-            "slug": _slugify("SenseiWagnibiart Gallery"),
-        })
-
-    works_items = []
-    for item in sensei_items + upload_items:
-        item = item.copy()
-        if "slug" not in item:
-            item["slug"] = _slugify(item["title"])
-        item["thumb"] = item.get("thumb") or (item["images"][0] if item.get("images") else None)
-        works_items.append(item)
-    return works_items
-
-
-def _load_infinite_images():
-    images_dir = Path(settings.MEDIA_ROOT) / "infinitecarousel"
-    if not images_dir.exists():
-        return []
-    items = []
-    for path in sorted(images_dir.glob("*")):
-        if path.is_file() and path.suffix.lower() in IMAGE_EXTS:
-            items.append({"src": _media_url("infinitecarousel", path.name)})
-    return items
-
-
-@require_http_methods(["GET", "POST"])
-def api_gallery_items(request, gallery_id):
-    gallery_id = _slugify(gallery_id)
-    if request.method == "GET":
-        items = _load_gallery_items(gallery_id)
-        return JsonResponse({"items": items, "limit": WORKS_MAX_ITEMS}, status=200)
-
-    # POST
-    if not request.user.is_authenticated or not request.user.is_staff:
-        return JsonResponse({"error": "Unauthorized"}, status=403)
-
-    if _gallery_item_count(gallery_id) >= WORKS_MAX_ITEMS:
-        return JsonResponse({"error": f"Limit reached ({WORKS_MAX_ITEMS} photos). Remove one to add another."}, status=409)
-
-    title = request.POST.get("title", "").strip()
-    image_file = request.FILES.get("image")
-    thumb_file = request.FILES.get("thumbnail")
-
-    errors = {}
-    if not title:
-        errors["title"] = "Title is required."
-    if not image_file:
-        errors["image"] = "Full image is required."
-    if not thumb_file:
-        errors["thumbnail"] = "Thumbnail image is required."
-
-    def _valid(file_obj):
-        return file_obj and Path(file_obj.name).suffix.lower() in IMAGE_EXTS
-
-    if image_file and not _valid(image_file):
-        errors["image"] = "Full image must be an image file."
-    if thumb_file and not _valid(thumb_file):
-        errors["thumbnail"] = "Thumbnail must be an image file."
-
-    if errors:
-        return JsonResponse({"errors": errors}, status=400)
-
-    item = _save_gallery_item(gallery_id, title, image_file, thumb_file)
-    return JsonResponse({"item": item, "limit": WORKS_MAX_ITEMS}, status=201)
-
-
-@require_http_methods(["DELETE"])
-def api_gallery_item_detail(request, gallery_id, item_id):
-    if not request.user.is_authenticated or not request.user.is_staff:
-        return JsonResponse({"error": "Unauthorized"}, status=403)
-    _delete_gallery_item(gallery_id, item_id)
-    return JsonResponse({"success": True})
-
-# Categories management, partially uses Article management
-def _project_category_choices(items=None, extra_categories=None):
-    items = items if items is not None else _load_projects()
-    discovered = []
-    for item in items:
-        discovered.extend(item.get("categories") or [])
-
-    discovered_unique = _merge_tag_choices(discovered, extra_categories)
-    discovered_unique.sort(key=str.casefold)
-    return _merge_tag_choices(discovered_unique, extra_categories)
     
 # Project management views
 def add_project(request):
@@ -1118,12 +716,8 @@ def delete_project(request, project_id):
 def serve_media(request, path):
     normalized = path.replace("\\", "/").lstrip("/")
     allowed_roots = {
-        "covers": Path(settings.MEDIA_ROOT) / "covers",
+        "articles": Path(settings.MEDIA_ROOT) / "articles",
         "projects": Path(settings.MEDIA_ROOT) / "projects",
-        "galleries": Path(settings.MEDIA_ROOT) / "galleries",
-        "works_uploads": Path(settings.MEDIA_ROOT) / "works_uploads",
-        "infinitecarousel": Path(settings.MEDIA_ROOT) / "infinitecarousel",
-        "legacy-static": LEGACY_STATIC_IMAGES_DIR,
     }
 
     top_level = normalized.split("/", 1)[0]
@@ -1140,9 +734,3 @@ def serve_media(request, path):
         raise Http404("File not found")
 
     return FileResponse(candidate.open("rb"))
-
-def _project_form(request, project_id=None, is_edit=False):
-    """
-    File-backed composer: saves JSON + optional cover locally.
-    """
-    all_projects = _load_projects()
