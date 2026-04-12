@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
+import envvar
 from pathlib import Path
 
 import dj_database_url
@@ -141,11 +142,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # For production, configure with actual SMTP settings
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+envvar.setVar()
+
 # For production with Gmail SMTP, uncomment and configure:
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # Use App Password
+EMAIL_HOST_PASSWORD =  os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 

@@ -183,7 +183,7 @@ def contact(request):
             subject = f'rijmenbaskara.com from {email}'
             full_message = f'From: {email}\n\nMessage:\n{message}'
             sender_email = settings.DEFAULT_FROM_EMAIL
-            receiver_email = os.getenv('EMAIL_HOST_USER')
+            receiver_email = "rijmenbaskara@gmail.com"
             
             try:
                 # Send email
