@@ -169,10 +169,15 @@
                 <button type="button" data-command="createLink" title="Link">Link</button>
                 <span class="divider"></span>
                 <button type="button" id="insertImageBtn" title="Insert Image">📷</button>
+                <button type="button" id="insertSlideshowBtn" title="Insert Slideshow (multiple images)">🎞 Slideshow</button>
               </div>
-              
-              <!-- Hidden file input for inline images -->
+
+              <!-- Hidden file inputs for inline images / slideshow -->
               <input type="file" id="inlineImageInput" accept="image/*" hidden multiple>
+              <input type="file" id="slideshowInput" accept="image/*" hidden multiple>
+
+              <!-- Upload endpoint for editor (data attr avoids hardcoding URL in JS) -->
+              <div id="editorConfig" data-upload-url="{% url 'upload_article_image' %}" hidden></div>
 
               <div
                 class="editor-body"

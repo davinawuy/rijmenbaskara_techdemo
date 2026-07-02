@@ -137,6 +137,13 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Allow larger uploads. Inline article images are now stored on disk (not embedded
+# in the request body), but raise these limits so multi-image submissions and the
+# slideshow uploader are never rejected by Django's 2.5MB default.
+DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50 MB
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 2000
+
 # Email Configuration
 # For development, using console backend (prints emails to console)
 # For production, configure with actual SMTP settings

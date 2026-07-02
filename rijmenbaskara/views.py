@@ -24,6 +24,11 @@ ARTICLES_DIR.mkdir(exist_ok=True)
 ARTICLES_COVERS_DIR = Path(settings.MEDIA_ROOT) / "articles"
 ARTICLES_COVERS_DIR.mkdir(parents=True, exist_ok=True)
 
+# Inline images (body images + slideshows) live here and are referenced by URL
+# instead of being embedded as base64 in the article body.
+ARTICLES_INLINE_DIR = ARTICLES_COVERS_DIR / "inline"
+ARTICLES_INLINE_DIR.mkdir(parents=True, exist_ok=True)
+
 
 # --- PROJECT STORAGE ---
 PROJECTS_DIR = Path(settings.BASE_DIR) / "projects_store"
@@ -138,6 +143,55 @@ def _ensure_staff(request):
         messages.error(request, "Admins only.")
         return False
     return True
+
+
+def _save_article_image(uploaded_file) -> str:
+    """Save an uploaded article image to MEDIA_ROOT/articles/inline and return its media URL."""
+    import hashlib
+
+    ext = Path(uploaded_file.name).suffix.lower() or ".jpg"
+    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    hash_part = hashlib.md5(uploaded_file.read()).hexdigest()[:8]
+    uploaded_file.seek(0)
+    filename = f"article_{timestamp}_{hash_part}{ext}"
+
+    filepath = ARTICLES_INLINE_DIR / filename
+    with open(filepath, 'wb+') as destination:
+        for chunk in uploaded_file.chunks():
+            destination.write(chunk)
+
+    return _media_url("articles", "inline", filename)
+
+
+@require_http_methods(["POST"])
+def upload_article_image(request):
+    """
+    Staff-only AJAX endpoint. Accepts one or more image files (field name 'images'),
+    stores them on disk, and returns their media URLs. Used by the editor for both
+    inline images and slideshow blocks so large images no longer bloat the article body.
+    """
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return JsonResponse({"success": False, "error": "Admins only."}, status=403)
+
+    files = request.FILES.getlist('images')
+    if not files:
+        return JsonResponse({"success": False, "error": "No images provided."}, status=400)
+
+    urls = []
+    for uploaded in files:
+        if uploaded.content_type and not uploaded.content_type.startswith("image/"):
+            continue
+        if Path(uploaded.name).suffix.lower() not in IMAGE_EXTS:
+            continue
+        try:
+            urls.append(_save_article_image(uploaded))
+        except Exception as exc:
+            return JsonResponse({"success": False, "error": str(exc)}, status=500)
+
+    if not urls:
+        return JsonResponse({"success": False, "error": "No valid images uploaded."}, status=400)
+
+    return JsonResponse({"success": True, "urls": urls})
 
 # Tags management
 def _merge_tag_choices(*tag_groups):
@@ -508,7 +562,9 @@ def _article_form(request, article_id=None, is_edit=False):
             'draft_subtitle': existing.get("subtitle", ""),
             'draft_body': existing.get("body_html", ""),
             'draft_tags': existing_tags,
-            'draft_custom_tags': ", ".join(existing_tags),
+            # Existing tags are already shown as checked chips via tag_choices below;
+            # leave the "new tags" field empty so each tag renders only once.
+            'draft_custom_tags': "",
             'article_id': existing.get("id", article_id),
             'existing_cover': existing.get("cover"),
             'tag_choices': _article_tag_choices(all_articles, existing_tags),
@@ -588,13 +644,18 @@ def _article_form(request, article_id=None, is_edit=False):
             if not is_edit:
                 return redirect('manage_articles')
 
+            saved_tags = record.get("tags", []) or []
             context.update({
                 'draft_title': record.get("title", ""),
                 'draft_subtitle': record.get("subtitle", ""),
                 'draft_body': record.get("body_html", ""),
-                'draft_tags': record.get("tags", []) or [],
+                'draft_tags': saved_tags,
+                # Saved tags now appear as checked chips; clear the "new tags"
+                # field so they aren't rendered a second time.
+                'draft_custom_tags': "",
                 'article_id': record.get("id", article_id),
                 'existing_cover': record.get("cover"),
+                'tag_choices': _article_tag_choices(all_articles, saved_tags),
             })
 
     return render(request, 'add_article.html', context)

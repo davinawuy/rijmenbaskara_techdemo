@@ -31,6 +31,7 @@ urlpatterns = [
     path('projects/<slug:project_id>/delete/', views.delete_project, name='delete_project'),
     path('articles/', views.articles, name='articles'),
     path('articles/new/', views.add_article, name='add_article'),
+    path('articles/upload-image/', views.upload_article_image, name='upload_article_image'),
     path('articles/manage/', views.manage_articles, name='manage_articles'),
     path('articles/<str:article_id>/delete/', views.delete_article, name='delete_article'),
     path('articles/export-backup/', views.export_content_backup, name='export_content_backup'),
